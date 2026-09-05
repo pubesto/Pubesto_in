@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-label="B-07 premium nice glass bottle product image">
+  <rect width="640" height="520" fill="#f4efe8"/>
+  <g transform="translate(136 64) rotate(-14 66 190)">
+    <rect x="26" y="72" width="80" height="282" rx="36" fill="#f7fff4" stroke="#c8d6c0" stroke-width="7"/>
+    <rect x="38" y="28" width="56" height="68" rx="18" fill="#e8b5a6"/>
+    <text x="66" y="216" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#173934" transform="rotate(90 66 216)">B-07</text>
+  </g>
+  <g transform="translate(284 54)">
+    <rect x="26" y="72" width="80" height="302" rx="36" fill="#ffffff" stroke="#d8d0c4" stroke-width="7"/>
+    <rect x="38" y="28" width="56" height="68" rx="18" fill="#e8b5a6"/>
+    <text x="66" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#173934" transform="rotate(90 66 230)">B-07</text>
+  </g>
+  <g transform="translate(420 74) rotate(14 66 190)">
+    <rect x="26" y="72" width="80" height="282" rx="36" fill="#e7fff2" stroke="#c8d6c0" stroke-width="7"/>
+    <rect x="38" y="28" width="56" height="68" rx="18" fill="#e8b5a6"/>
+    <text x="66" y="216" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#173934" transform="rotate(90 66 216)">B-07</text>
+  </g>
+  <text x="320" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#173934">Premium Glass Bottle</text>
+</svg>

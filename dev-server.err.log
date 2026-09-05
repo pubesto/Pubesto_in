@@ -1,0 +1,8 @@
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          17556
+- Dir:          D:\My Projects\Pubesto-Ecom
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 17556 /F to stop it.

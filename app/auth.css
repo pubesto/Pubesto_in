@@ -1,0 +1,634 @@
+.auth-page,
+.account-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(63, 100, 105, 0.1), transparent 32%),
+    linear-gradient(180deg, #f8f6f2 0%, #ffffff 100%);
+  padding: 96px 24px 80px;
+}
+
+.auth-shell {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.auth-shell.compact {
+  width: min(520px, 100%);
+  grid-template-columns: 1fr;
+}
+
+.auth-panel,
+.account-card,
+.account-address-card,
+.account-empty-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(63, 100, 105, 0.14);
+  box-shadow: 0 22px 60px rgba(63, 100, 105, 0.11);
+}
+
+.auth-panel {
+  border-radius: 16px;
+  padding: 34px;
+}
+
+.auth-copy-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--brand-color);
+  color: #fff;
+}
+
+.auth-eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 12px;
+  color: var(--brand-color);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.auth-copy-panel .auth-eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.auth-copy-panel h1,
+.auth-form h1,
+.account-header h1 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.auth-copy-panel h1 {
+  max-width: 420px;
+  font-size: clamp(36px, 5vw, 62px);
+}
+
+.auth-copy-panel p {
+  max-width: 440px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.7;
+}
+
+.auth-benefits {
+  display: grid;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.auth-benefits span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.auth-form-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--cream);
+  margin-bottom: 24px;
+}
+
+.auth-tabs button {
+  border: 0;
+  border-radius: 9px;
+  padding: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.auth-tabs button.active {
+  background: #fff;
+  color: var(--brand-color);
+  box-shadow: 0 8px 18px rgba(63, 100, 105, 0.1);
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-form h1,
+.auth-form h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.auth-form label,
+.auth-field > label,
+.account-card label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.auth-field {
+  display: grid;
+  gap: 7px;
+}
+
+.auth-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(63, 100, 105, 0.2);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.auth-input-wrap svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.auth-input-wrap input,
+.account-card input {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.auth-password-toggle {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.auth-password-toggle:hover,
+.auth-password-toggle:focus-visible {
+  background: rgba(63, 100, 105, 0.08);
+  color: var(--brand-color);
+}
+
+.auth-password-toggle:focus-visible {
+  outline: 2px solid rgba(63, 100, 105, 0.26);
+  outline-offset: 2px;
+}
+
+.auth-oauth-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.auth-oauth-divider::before,
+.auth-oauth-divider::after {
+  content: "";
+  height: 1px;
+  background: rgba(63, 100, 105, 0.14);
+}
+
+.account-card input {
+  border: 1px solid rgba(63, 100, 105, 0.2);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.account-card input:disabled {
+  background: var(--cream);
+  color: var(--muted);
+}
+
+.auth-submit,
+.account-primary,
+.account-secondary,
+.account-danger,
+.account-logout {
+  min-height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.auth-submit,
+.account-primary {
+  border: 1px solid var(--brand-color);
+  background: var(--brand-color);
+  color: #fff;
+}
+
+.auth-submit.as-link {
+  text-decoration: none;
+}
+
+.auth-submit:disabled,
+.account-primary:disabled {
+  opacity: 0.6;
+}
+
+.auth-link-button,
+.account-secondary {
+  border: 1px solid rgba(63, 100, 105, 0.2);
+  background: #fff;
+  color: var(--brand-color);
+}
+
+.auth-link-button {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-weight: 800;
+}
+
+.auth-message,
+.account-message {
+  margin: 0;
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: rgba(16, 185, 129, 0.09);
+  color: #047857;
+  font-weight: 700;
+}
+
+.auth-message.error {
+  background: rgba(229, 62, 62, 0.08);
+  color: #c53030;
+}
+
+.auth-reset-link {
+  color: var(--brand-color);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.account-container {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.account-header,
+.account-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.account-header h1,
+.account-section-heading h2 {
+  color: var(--ink);
+  font-size: clamp(36px, 5vw, 56px);
+}
+
+.account-header p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.account-logout {
+  border: 1px solid rgba(197, 48, 48, 0.22);
+  background: rgba(197, 48, 48, 0.06);
+  color: #a12222;
+  padding: 0 16px;
+}
+
+.account-grid,
+.account-address-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.account-card {
+  border-radius: 14px;
+  padding: 24px;
+  display: grid;
+  gap: 15px;
+}
+
+.account-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.account-card-header svg {
+  color: var(--brand-color);
+}
+
+.account-card h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+  font-style: normal;
+  font-family: var(--font-body);
+  font-weight: 900;
+}
+
+.account-card p,
+.account-loading {
+  margin: 0;
+  color: var(--muted);
+}
+
+.account-link-list {
+  display: grid;
+  gap: 10px;
+}
+
+.account-link-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(63, 100, 105, 0.16);
+  border-radius: 10px;
+  padding: 13px 14px;
+  color: var(--brand-color);
+  font-weight: 800;
+  background: #fff;
+}
+
+.account-address-section {
+  margin-top: 34px;
+}
+
+.account-section-heading h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.account-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.account-address-list {
+  display: grid;
+  gap: 14px;
+}
+
+.account-address-card,
+.account-empty-card {
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.account-address-card strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.account-address-card p {
+  margin: 0 0 4px;
+  color: var(--muted);
+}
+
+.account-actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.account-secondary,
+.account-danger {
+  padding: 0 14px;
+}
+
+.account-danger {
+  border: 1px solid rgba(197, 48, 48, 0.22);
+  background: #fff;
+  color: #a12222;
+}
+
+@media (max-width: 840px) {
+  .auth-shell,
+  .account-grid,
+  .account-address-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-copy-panel {
+    min-height: 360px;
+  }
+
+  .account-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-page,
+  .account-page {
+    padding: 82px 16px 56px;
+  }
+
+  .auth-panel,
+  .account-card {
+    padding: 22px;
+  }
+
+  .account-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.account-address-list.form-closed {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 18px !important;
+}
+
+/* Premium Avatar & Profile Hero styling */
+.account-hero-profile {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.account-avatar {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 50% !important;
+  background: var(--brand-color, #3f6469) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 8px 24px rgba(63, 100, 105, 0.2) !important;
+  flex-shrink: 0 !important;
+  border: 2px solid #ffffff !important;
+}
+
+.account-hero-email {
+  margin: 4px 0 0 0 !important;
+  color: var(--muted, #7a7266) !important;
+  font-size: 14px !important;
+}
+
+/* Enhancing Account Link List Hover Transitions */
+.account-link-list a {
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.account-link-list a:hover {
+  transform: translateX(6px) !important;
+  border-color: var(--brand-color, #3f6469) !important;
+  box-shadow: 0 6px 20px rgba(63, 100, 105, 0.08) !important;
+  color: var(--brand-color, #3f6469) !important;
+}
+
+/* Premium Empty State Addresses styling */
+.account-empty-card {
+  grid-column: 1 / -1 !important; /* Span full width of grid */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 40px 24px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px dashed rgba(63, 100, 105, 0.25) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(63, 100, 105, 0.04) !important;
+}
+
+.empty-card-icon {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  background: rgba(63, 100, 105, 0.08) !important;
+  color: var(--brand-color, #3f6469) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 14px !important;
+}
+
+.account-empty-card h3 {
+  font-family: var(--font-display) !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: var(--ink, #2c2520) !important;
+  margin: 0 0 6px 0 !important;
+}
+
+.account-empty-card p {
+  font-size: 13.5px !important;
+  line-height: 1.6 !important;
+  color: var(--muted, #7a7266) !important;
+  max-width: 380px !important;
+  margin: 0 0 16px 0 !important;
+}
+
+/* Styling Logout Button to look extremely clean and premium */
+.account-logout {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 1px solid rgba(197, 48, 48, 0.16) !important;
+  background: rgba(197, 48, 48, 0.04) !important;
+  color: #a12222 !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  border-radius: 10px !important;
+  padding: 10px 18px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.account-logout:hover {
+  background: rgba(197, 48, 48, 0.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ===== ACCOUNT PAGE PREMIUM UPGRADES ===== */
+
+/* Account container — wider for orders view */
+.account-container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+/* Message notification */
+.account-message {
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  background: rgba(27, 98, 75, 0.07);
+  color: #1b624b;
+  border: 1px solid rgba(27, 98, 75, 0.15);
+  margin-bottom: 20px;
+}
+
+/* Account header premium */
+.account-header {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(211,201,189,0.4);
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(8px);
+}
+
+/* Order card hover lift */
+.account-card.order-card:hover {
+  box-shadow: 0 10px 36px rgba(27, 98, 75, 0.08) !important;
+  transform: translateY(-1px);
+  transition: all 0.22s ease;
+}
+
+/* Responsive: stack filters on mobile */
+@media (max-width: 600px) {
+  .account-tab-btn span { display: none; }
+  .orders-filter-tab .tab-count { display: none; }
+  .order-progress-label { display: none; }
+}

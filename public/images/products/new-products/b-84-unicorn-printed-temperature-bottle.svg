@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-label="Unicorn printed temperature bottle product image">
+  <rect width="640" height="520" fill="#f4efe8"/>
+  <g transform="translate(120 74)">
+    <rect x="0" y="52" width="88" height="312" rx="34" fill="#f5a4b8"/>
+    <rect x="14" y="20" width="60" height="56" rx="16" fill="#f1c879"/>
+    <path d="M28 206c22-56 66-54 92 0" fill="none" stroke="#ffffff" stroke-width="12"/>
+    <circle cx="58" cy="172" r="10" fill="#ffffff"/>
+  </g>
+  <g transform="translate(264 74)">
+    <rect x="0" y="52" width="88" height="312" rx="34" fill="#2bb7c7"/>
+    <rect x="14" y="20" width="60" height="56" rx="16" fill="#173934"/>
+    <path d="M44 172l18 42-42-16 42-16-18 42" fill="none" stroke="#ffffff" stroke-width="10"/>
+    <circle cx="56" cy="238" r="12" fill="#f1c879"/>
+  </g>
+  <g transform="translate(408 74)">
+    <rect x="0" y="52" width="88" height="312" rx="34" fill="#ffffff" stroke="#d8d0c4" stroke-width="6"/>
+    <rect x="14" y="20" width="60" height="56" rx="16" fill="#8ba0c4"/>
+    <path d="M28 198c28-46 66-46 94 0" fill="none" stroke="#65b883" stroke-width="10"/>
+    <path d="M28 198c26-28 68-28 94 0" fill="none" stroke="#f1c879" stroke-width="8"/>
+  </g>
+  <text x="320" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#173934">Unicorn Temperature Bottle</text>
+</svg>

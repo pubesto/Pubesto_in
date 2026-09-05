@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-label="RL-7064 green portable table fan product image">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset="0.56" stop-color="#f2ede4"/>
+      <stop offset="1" stop-color="#e6ded2"/>
+    </linearGradient>
+    <linearGradient id="boxTop" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d7f1be"/>
+    </linearGradient>
+    <linearGradient id="boxFront" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#e22b27"/>
+      <stop offset="0.55" stop-color="#be1d19"/>
+      <stop offset="1" stop-color="#87120f"/>
+    </linearGradient>
+    <radialGradient id="fanFace" cx="38%" cy="24%" r="78%">
+      <stop offset="0" stop-color="#daff5c"/>
+      <stop offset="0.65" stop-color="#b6ef19"/>
+      <stop offset="1" stop-color="#7fbd13"/>
+    </radialGradient>
+    <linearGradient id="greenDark" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#1e7064"/>
+      <stop offset="1" stop-color="#0e3f3b"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.46"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.11"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#21150b" flood-opacity="0.2"/>
+    </filter>
+    <filter id="smallShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#21150b" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <rect width="640" height="520" fill="url(#bg)"/>
+  <g opacity="0.42">
+    <rect x="41" y="65" width="96" height="80" rx="18" fill="#eadfce"/>
+    <rect x="490" y="70" width="104" height="72" rx="18" fill="#e8ddce"/>
+    <rect x="82" y="182" width="82" height="58" rx="17" fill="#ded4c6"/>
+    <rect x="503" y="189" width="74" height="57" rx="17" fill="#ddd0c1"/>
+  </g>
+  <ellipse cx="333" cy="446" rx="250" ry="38" fill="#2c2017" opacity="0.14"/>
+
+  <g transform="translate(106 325)" filter="url(#shadow)">
+    <path d="M35 0h390l54 54H72z" fill="url(#boxTop)"/>
+    <path d="M72 54h407v104H72z" fill="url(#boxFront)"/>
+    <path d="M35 0v97l37 61V54z" fill="#d0e8b9"/>
+    <path d="M320 14h74l34 28h-76z" fill="#89c43e" opacity="0.95"/>
+    <text x="97" y="111" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="42" font-weight="900" fill="#ffffff">RL-7064</text>
+    <text x="101" y="136" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="15" font-weight="800" fill="#ffe3d5" letter-spacing="2">PORTABLE TABLE FAN</text>
+    <rect x="331" y="83" width="98" height="40" rx="7" fill="#ffffff" opacity="0.92"/>
+    <text x="380" y="109" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="18" font-weight="900" fill="#184c42">COOL</text>
+  </g>
+
+  <g transform="translate(170 34)" filter="url(#shadow)">
+    <path d="M181 330h78l20 91H160z" fill="url(#greenDark)"/>
+    <path d="M189 333h62l9 39h-80z" fill="#164d45" opacity="0.72"/>
+    <rect x="125" y="402" width="172" height="44" rx="18" fill="#136653"/>
+    <rect x="148" y="411" width="126" height="18" rx="9" fill="#1b7d62"/>
+    <circle cx="211" cy="173" r="158" fill="#6fae11"/>
+    <circle cx="211" cy="173" r="142" fill="url(#fanFace)"/>
+    <circle cx="211" cy="173" r="119" fill="#d5ff44" opacity="0.88"/>
+    <circle cx="211" cy="173" r="44" fill="#7ec20d"/>
+
+    <g fill="#9de51e">
+      <path d="M211 137c-51-55-36-105 8-113 30 27 38 72 17 124z"/>
+      <path d="M247 173c55-51 105-36 113 8-27 30-72 38-124 17z"/>
+      <path d="M211 209c51 55 36 105-8 113-30-27-38-72-17-124z"/>
+      <path d="M175 173c-55 51-105 36-113-8 27-30 72-38 124-17z"/>
+    </g>
+
+    <g fill="none" stroke="#6da812" stroke-linecap="round">
+      <circle cx="211" cy="173" r="139" stroke-width="8"/>
+      <circle cx="211" cy="173" r="104" stroke-width="5"/>
+      <circle cx="211" cy="173" r="70" stroke-width="4"/>
+      <path d="M211 35v276" stroke-width="5"/>
+      <path d="M73 173h276" stroke-width="5"/>
+      <path d="M113 75 309 271" stroke-width="4"/>
+      <path d="M309 75 113 271" stroke-width="4"/>
+      <path d="M157 48 265 298" stroke-width="3"/>
+      <path d="M265 48 157 298" stroke-width="3"/>
+      <path d="M86 119 336 227" stroke-width="3"/>
+      <path d="M336 119 86 227" stroke-width="3"/>
+    </g>
+
+    <circle cx="211" cy="173" r="31" fill="#6cad0c"/>
+    <circle cx="201" cy="162" r="10" fill="#caff49" opacity="0.75"/>
+    <path d="M95 86c38-52 94-73 159-62" fill="none" stroke="url(#shine)" stroke-width="20" stroke-linecap="round"/>
+    <path d="M147 333c35 16 89 18 129-2" fill="none" stroke="#59a70d" stroke-width="11" stroke-linecap="round"/>
+  </g>
+
+  <text x="321" y="494" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="21" font-weight="800" fill="#173934">RL-7064 green portable table fan</text>
+</svg>

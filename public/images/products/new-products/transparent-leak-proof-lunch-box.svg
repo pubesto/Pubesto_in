@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-label="Transparent leak proof lunch box product image">
+  <rect width="640" height="520" fill="#f7f4ec"/>
+  <rect x="110" y="138" width="420" height="230" rx="34" fill="#ffffff" stroke="#b6c4cb" stroke-width="12"/>
+  <rect x="142" y="170" width="356" height="166" rx="24" fill="#eaf7fb" stroke="#d0e2e8" stroke-width="8"/>
+  <path d="M142 240h356" stroke="#d0e2e8" stroke-width="8"/>
+  <path d="M320 170v166" stroke="#d0e2e8" stroke-width="8"/>
+  <circle cx="226" cy="246" r="42" fill="#8bc46a"/>
+  <circle cx="404" cy="248" r="38" fill="#f5b05c"/>
+  <rect x="158" y="116" width="324" height="44" rx="22" fill="#173934"/>
+  <text x="320" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#173934">Leak Proof Lunch Box</text>
+</svg>

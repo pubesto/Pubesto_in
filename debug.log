@@ -1,0 +1,20 @@
+[0515/113605.011:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113605.303:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113605.304:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113606.088:INFO:CONSOLE:2432] "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113606.214:INFO:CONSOLE:2432] "[HMR] connected", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113608.506:INFO:CONSOLE:3273] "Error fetching Shopify products: TypeError: Failed to fetch", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (3273)
+[0515/113608.656:INFO:CONSOLE:2432] "[Fast Refresh] rebuilding", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113608.863:INFO:CONSOLE:2432] "[Fast Refresh] done in 230ms", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113710.326:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113710.343:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113710.343:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113710.755:INFO:CONSOLE:2432] "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113710.816:INFO:CONSOLE:2432] "[HMR] connected", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113710.944:INFO:CONSOLE:3273] "Error fetching Shopify products: TypeError: Failed to fetch", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (3273)
+[0515/113827.932:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113827.946:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113827.946:ERROR:gpu\ipc\service\gpu_channel_manager.cc:927] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[0515/113828.362:INFO:CONSOLE:2432] "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113828.425:INFO:CONSOLE:2432] "[HMR] connected", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (2432)
+[0515/113828.558:INFO:CONSOLE:3273] "Error fetching Shopify products: TypeError: Failed to fetch", source: http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js (3273)
