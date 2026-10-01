@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "../../../components/StoreContext";
 import { peopleChoiceVideos } from "../../../lib/data";
-import { getShopifyCheckoutUrl, getShopifyVariantIdForColor, getShopifyCartPermalink } from "../../../lib/shopify";
+
 
 const INDIAN_NAMES = [
   "Rahul", "Kavya", "Vivek", "Sunita", "Srinivas", "Priya", "Amit", "Riya", 
@@ -64,7 +64,7 @@ const formatRupeePrice = (priceStr) => {
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen, isLoggedIn, isAuthLoading, user, refreshAuthSession
+    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen, isLoggedIn, isAuthLoading, user, refreshAuthSession, paymentMethod
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
@@ -254,48 +254,7 @@ function ProductPageContent() {
     });
   }
 
-  function appendCheckoutPrefillParams(url, currentUser = user) {
-    if (!url) return url;
-    try {
-      const parsedUrl = new URL(url, window.location.origin);
-      
-      const email = currentUser?.email;
-      if (email) {
-        parsedUrl.searchParams.set("checkout[email]", email);
-      }
-      
-      // Split name
-      const nameParts = String(currentUser?.name || "Customer").trim().split(/\s+/);
-      const firstName = nameParts[0] || "Customer";
-      const lastName = nameParts.slice(1).join(" ") || ".";
-      
-      parsedUrl.searchParams.set("checkout[shipping_address][first_name]", firstName);
-      parsedUrl.searchParams.set("checkout[shipping_address][last_name]", lastName);
-      
-      if (currentUser?.phone) {
-        const digits = String(currentUser.phone).replace(/\D/g, "");
-        const formattedPhone = digits.length === 10 ? `+91${digits}` : (currentUser.phone.startsWith("+") ? currentUser.phone : null);
-        if (formattedPhone) {
-          parsedUrl.searchParams.set("checkout[shipping_address][phone]", formattedPhone);
-        }
-      }
-      
-      if (currentUser?.addresses && currentUser.addresses.length > 0) {
-        const addr = currentUser.addresses[0];
-        if (addr.line1) parsedUrl.searchParams.set("checkout[shipping_address][address1]", addr.line1);
-        if (addr.line2) parsedUrl.searchParams.set("checkout[shipping_address][address2]", addr.line2);
-        if (addr.city) parsedUrl.searchParams.set("checkout[shipping_address][city]", addr.city);
-        if (addr.state) parsedUrl.searchParams.set("checkout[shipping_address][province]", addr.state);
-        if (addr.pincode) parsedUrl.searchParams.set("checkout[shipping_address][zip]", addr.pincode);
-        parsedUrl.searchParams.set("checkout[shipping_address][country]", "India");
-      }
-      
-      return parsedUrl.toString();
-    } catch (e) {
-      console.error("Failed to append checkout prefill parameters:", e);
-      return url;
-    }
-  }
+
 
   async function handleBuyNow(overrideQty = null, overrideColor = null) {
     if (product.inStock === false || isBuyingNow) return;
@@ -311,38 +270,25 @@ function ProductPageContent() {
       return;
     }
 
-    const shopifyHandle = product.shopifyHandle || product.slug;
     setIsBuyingNow(true);
 
     try {
-      const refreshedUser = await refreshAuthSession?.();
-      const checkoutUser = refreshedUser || user;
-
-      // Generate standard Storefront Cart permalink checkout (/cart/variantId:qty)
-      // This forces Shopify to display the native "Discount code" box on the checkout page
-      const permalinkUrl = getShopifyCartPermalink([{
-        product,
-        color: currentColorName,
-        quantity: currentQty
-      }]);
-
-      window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser);
-      return;
-    } catch (err) {
-      console.warn("Shopify checkout error:", err.message);
-      
-      addToCart(product, {
-        color: currentColorName,
-        quantity: currentQty,
-        openCart: false
-      });
-      const fallbackProduct = currentColorName
+      const productToBuy = currentColorName
         ? { ...product, selectedColor: currentColorName }
         : product;
-      checkout({
-        items: [{ id: getProductId(fallbackProduct), product: fallbackProduct, quantity: currentQty }],
-        amount: basePrice * currentQty
+
+      await checkout({
+        items: [{
+          id: getProductId(productToBuy),
+          product: productToBuy,
+          color: currentColorName,
+          quantity: currentQty
+        }],
+        amount: basePrice * currentQty,
+        paymentMethod: paymentMethod
       });
+    } catch (err) {
+      console.warn("Shopify checkout error:", err.message);
     } finally {
       setIsBuyingNow(false);
     }

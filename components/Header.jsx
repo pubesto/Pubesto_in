@@ -27,6 +27,11 @@ export default function Header() {
     refreshAuthSession,
     cartItems,
     cartTotal,
+    paymentMethod,
+    setPaymentMethod,
+    prepaidDiscountAmount,
+    cartShippingFee,
+    cartFinalTotal,
     updateCartQuantity,
     removeFromCart,
     checkout,
@@ -1132,24 +1137,155 @@ export default function Header() {
                 {/* Footer for active cart items */}
                 {cartItems.length > 0 && (
                   <div style={{ borderTop: '1px solid rgba(211, 201, 189, 0.4)', paddingTop: '12px', marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    
+                    {/* Payment Method Selector */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--muted)' }}>
+                          Payment Method
+                        </span>
+                        {paymentMethod === "prepaid" && (
+                          <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#1b624b', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            ⚡ 10% EXTRA OFF
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        {/* Prepaid Option */}
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod("prepaid")}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            padding: '8px 10px',
+                            borderRadius: '10px',
+                            border: paymentMethod === "prepaid" ? '1.5px solid #1b624b' : '1px solid rgba(211, 201, 189, 0.5)',
+                            background: paymentMethod === "prepaid" ? 'rgba(27, 98, 75, 0.05)' : '#ffffff',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '2px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <div style={{
+                                width: '13px',
+                                height: '13px',
+                                borderRadius: '50%',
+                                border: paymentMethod === "prepaid" ? '4px solid #1b624b' : '1.5px solid #a3b8b0',
+                                background: '#fff',
+                                boxSizing: 'border-box'
+                              }} />
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)' }}>Prepaid</span>
+                            </div>
+                            <span style={{
+                              fontSize: '9px',
+                              fontWeight: 800,
+                              background: '#1b624b',
+                              color: '#ffffff',
+                              padding: '1px 4px',
+                              borderRadius: '4px',
+                              letterSpacing: '0.02em'
+                            }}>
+                              10% OFF
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '10px', color: paymentMethod === "prepaid" ? '#1b624b' : 'var(--muted)', fontWeight: 600, paddingLeft: '18px' }}>
+                            {cartTotal > 0 ? `Save ${formatPrice(Math.round(cartTotal * 0.10))}` : 'Pay Online'}
+                          </span>
+                        </button>
+
+                        {/* COD Option */}
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod("cod")}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            padding: '8px 10px',
+                            borderRadius: '10px',
+                            border: paymentMethod === "cod" ? '1.5px solid #1b624b' : '1px solid rgba(211, 201, 189, 0.5)',
+                            background: paymentMethod === "cod" ? 'rgba(27, 98, 75, 0.05)' : '#ffffff',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
+                            <div style={{
+                              width: '13px',
+                              height: '13px',
+                              borderRadius: '50%',
+                              border: paymentMethod === "cod" ? '4px solid #1b624b' : '1.5px solid #a3b8b0',
+                              background: '#fff',
+                              boxSizing: 'border-box'
+                            }} />
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)' }}>COD</span>
+                          </div>
+                          <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 500, paddingLeft: '18px' }}>
+                            Standard Price
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Price Breakdown */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>Subtotal</span>
                       <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>{formatPrice(cartTotal)}</span>
                     </div>
+
+                    {paymentMethod === "prepaid" && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#1b624b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          ⚡ Prepaid Discount (10%)
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#1b624b' }}>
+                          -{formatPrice(prepaidDiscountAmount)}
+                        </span>
+                      </div>
+                    )}
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>Shipping</span>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: cartTotal >= 500 ? 'var(--brand-color)' : 'var(--ink)' }}>
-                        {cartTotal >= 500 ? 'FREE' : formatPrice(70)}
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: cartShippingFee === 0 ? 'var(--brand-color)' : 'var(--ink)' }}>
+                        {cartShippingFee === 0 ? 'FREE' : formatPrice(70)}
                       </span>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px', borderTop: '1px dashed rgba(211, 201, 189, 0.3)', paddingTop: '6px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>Total</span>
-                      <strong style={{ fontSize: '17px', fontWeight: 800, color: 'var(--brand-color)' }}>
-                        {formatPrice(cartTotal + (cartTotal >= 500 ? 0 : 70))}
-                      </strong>
+                      <div style={{ textAlign: 'right', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        {paymentMethod === "prepaid" && prepaidDiscountAmount > 0 && (
+                          <span style={{ fontSize: '11px', color: 'var(--muted)', textDecoration: 'line-through' }}>
+                            {formatPrice(cartTotal + cartShippingFee)}
+                          </span>
+                        )}
+                        <strong style={{ fontSize: '17px', fontWeight: 800, color: 'var(--brand-color)' }}>
+                          {formatPrice(cartFinalTotal)}
+                        </strong>
+                      </div>
                     </div>
+
+                    {paymentMethod === "prepaid" && prepaidDiscountAmount > 0 && (
+                      <div style={{
+                        background: 'rgba(27, 98, 75, 0.08)',
+                        border: '1px solid rgba(27, 98, 75, 0.2)',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        color: '#1b624b',
+                        fontWeight: 600,
+                        textAlign: 'center'
+                      }}>
+                        🎉 Extra 10% discount applied for prepaid!
+                      </div>
+                    )}
 
                     <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '2px 0 4px', textAlign: 'center' }}>Taxes calculated at checkout.</p>
 
@@ -1163,7 +1299,11 @@ export default function Header() {
                             setAuthMode("signup");
                             setIsDropdownOpen(true);
                           } else {
-                            checkout();
+                            checkout({
+                              items: cartItems,
+                              amount: cartTotal,
+                              paymentMethod: paymentMethod
+                            });
                           }
                         }}
                         style={{ 
@@ -1186,7 +1326,7 @@ export default function Header() {
                         onMouseEnter={(e) => { e.currentTarget.style.background = '#154d3b'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = '#1b624b'; }}
                       >
-                        Checkout
+                        Checkout • {formatPrice(cartFinalTotal)}
                       </button>
                       <button
                         type="button"

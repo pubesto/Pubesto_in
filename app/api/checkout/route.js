@@ -103,6 +103,15 @@ export async function POST(request) {
       shippingLine,
     };
 
+    if (body.paymentMethod === "prepaid" || discountCode === "PREPAID10") {
+      draftOrderInput.appliedDiscount = {
+        title: "Prepaid 10% Discount",
+        value: 10,
+        valueType: "PERCENTAGE",
+        description: "Additional 10% discount for online prepaid payment"
+      };
+    }
+
     if (customerInfo) {
       const shopifyCustomerId = customerInfo.shopifyCustomerId || (String(customerInfo.id).startsWith("gid://shopify/Customer/") ? customerInfo.id : null);
       if (shopifyCustomerId) {
@@ -235,7 +244,11 @@ export async function POST(request) {
       return NextResponse.json({ fallback: true });
     }
 
-    return NextResponse.json({ checkoutUrl: fixShopifyCheckoutUrl(checkoutUrl) });
+    const finalUrl = fixShopifyCheckoutUrl(checkoutUrl);
+    return NextResponse.json({ 
+      checkoutUrl: finalUrl, 
+      invoiceUrl: finalUrl 
+    });
 
   } catch (error) {
     console.error("Checkout API route error:", error);

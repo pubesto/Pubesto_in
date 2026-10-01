@@ -222,6 +222,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState("prepaid");
   const shopifyCartQueueRef = useRef(Promise.resolve());
   const cartLoadedRef = useRef(false);
 
@@ -644,7 +645,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     });
   };
 
-  function appendCheckoutPrefillParams(url, currentUser = user) {
+  function appendCheckoutPrefillParams(url, currentUser = user, method = paymentMethod) {
     if (!url) return url;
     try {
       const parsedUrl = new URL(url, window.location.origin);
@@ -652,6 +653,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       const email = currentUser?.email;
       if (email) {
         parsedUrl.searchParams.set("checkout[email]", email);
+      }
+
+      if (method === "prepaid") {
+        parsedUrl.searchParams.set("discount", "PREPAID10");
       }
       
       // Split name
@@ -689,19 +694,63 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   async function checkout(options = {}) {
     const activeItems = options.items || cartItems;
-    const activeAmount = options.amount || cartTotal;
+    const activeAmount = options.amount !== undefined ? options.amount : cartTotal;
+    const currentMethod = options.paymentMethod || paymentMethod;
 
     if (activeItems.length === 0) return;
 
     const refreshedUser = await refreshAuthSession();
     const checkoutUser = refreshedUser || user;
 
-    // Generate standard Storefront Cart permalink checkout (/cart/variantId:qty)
+    // 1. Try draft order API checkout (/api/checkout) with exact line items & discount
+    try {
+      const formattedItems = activeItems.map((item) => {
+        const product = item.product || item;
+        const color = product.selectedColor || item.color;
+        let variantId = null;
+        if (color) {
+          variantId = getShopifyVariantIdForColor(product.slug || item.slug, color);
+        }
+        if (!variantId) {
+          variantId = product.shopifyVariantId || product.variantId || product.sku || item.variantId;
+        }
+        const unitPrice = getCartItemTotalPrice(product, item.quantity) / (item.quantity || 1);
+        return {
+          id: getProductId(product),
+          variantId: variantId ? `gid://shopify/ProductVariant/${String(variantId).replace(/\D/g, "")}` : null,
+          name: getCartItemDisplayName(product, item.quantity),
+          price: unitPrice,
+          quantity: item.quantity,
+          discountedUnitPrice: unitPrice
+        };
+      });
+
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: formattedItems,
+          paymentMethod: currentMethod,
+          discountCode: currentMethod === "prepaid" ? "PREPAID10" : ""
+        })
+      });
+
+      const data = await res.json();
+      const redirectUrl = data?.checkoutUrl || data?.invoiceUrl;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
+    } catch (e) {
+      console.warn("Draft order checkout bypassed:", e);
+    }
+
+    // 2. Generate standard Storefront Cart permalink checkout (/cart/variantId:qty)
     // This forces Shopify to display the native "Discount code" box on the checkout page
     try {
       const permalinkUrl = getShopifyCartPermalink(activeItems);
       if (permalinkUrl) {
-        window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser);
+        window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser, currentMethod);
         return;
       }
     } catch (error) {
@@ -716,7 +765,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     }
 
     try {
-      const finalAmount = activeAmount + (activeAmount >= 999 ? 0 : 99);
+      const discountAmount = currentMethod === "prepaid" ? Math.round(activeAmount * 0.10) : 0;
+      const shippingAmount = activeAmount >= 500 ? 0 : 70;
+      const finalAmount = Math.max(0, activeAmount - discountAmount + shippingAmount);
+
       const response = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -785,6 +837,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + getCartItemTotalPrice(item.product, item.quantity), 0);
+  const prepaidDiscountAmount = paymentMethod === "prepaid" ? Math.round(cartTotal * 0.10) : 0;
+  const cartShippingFee = cartTotal >= 500 ? 0 : 70;
+  const cartFinalTotal = Math.max(0, cartTotal - prepaidDiscountAmount + cartShippingFee);
   const shopifyCartUrl = getShopifyCartPermalink(cartItems);
 
   const value = {
@@ -794,6 +849,11 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     isSearchOpen, setIsSearchOpen,
     cartItems, setCartItems,
     cartPulseKey, setCartPulseKey,
+    paymentMethod, setPaymentMethod,
+    prepaidDiscountAmount,
+    prepaidDiscountPercent: 10,
+    cartShippingFee,
+    cartFinalTotal,
     searchQuery, setSearchQuery,
     profileNotice, setProfileNotice,
     selectedCategory, setSelectedCategory,
