@@ -11,7 +11,7 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-body",
 });
 
-const metaPixelIds = ["1229284689266211"];
+const metaPixelIds = ["1229284689266211", "27881346908132910"];
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
