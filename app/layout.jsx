@@ -23,7 +23,6 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 ${metaPixelIds.map((pixelId) => `fbq('init', '${pixelId}');`).join("\n")}
-fbq('track', 'PageView');
 `;
 
 export const metadata = {

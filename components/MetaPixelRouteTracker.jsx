@@ -1,21 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { trackPixel } from "../lib/meta-pixel";
 
+// Sends PageView on first load and on every client-side navigation, to both the
+// browser pixel and the Conversions API (the base script in layout.jsx only inits).
 export default function MetaPixelRouteTracker() {
   const pathname = usePathname();
-  const isInitialPageView = useRef(true);
 
   useEffect(() => {
-    if (isInitialPageView.current) {
-      isInitialPageView.current = false;
-      return;
-    }
-
-    if (typeof window.fbq === "function") {
-      window.fbq("track", "PageView");
-    }
+    trackPixel("PageView");
   }, [pathname]);
 
   return null;
