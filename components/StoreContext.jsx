@@ -811,7 +811,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
           email: checkoutUser?.email === "amitsharma500677@gmail.com" ? "pubesto.in@gmail.com" : (checkoutUser?.email || "pubesto.in@gmail.com"),
           contact: checkoutUser?.phone || "9999999999",
         },
-        theme: { color: "#1b624b" },
+        theme: { color: "#006994" },
       };
 
       const paymentObject = new window.Razorpay(rzpOptions);

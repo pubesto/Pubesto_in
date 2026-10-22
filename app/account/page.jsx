@@ -72,9 +72,9 @@ const STATUS_CONFIG = {
   delivered: {
     label: "Delivered",
     emoji: "📦",
-    color: "#1b624b",
-    bg: "rgba(27, 98, 75, 0.08)",
-    border: "rgba(27, 98, 75, 0.2)",
+    color: "#006994",
+    bg: "rgba(0, 105, 148, 0.08)",
+    border: "rgba(0, 105, 148, 0.2)",
     icon: Box,
   },
   cancelled: {
@@ -246,9 +246,9 @@ function PaymentBadge({ status }) {
         fontWeight: 700,
         padding: "4px 10px",
         borderRadius: "20px",
-        background: isPaid ? "rgba(27, 98, 75, 0.08)" : "rgba(220, 38, 38, 0.06)",
-        color: isPaid ? "#1b624b" : "#dc2626",
-        border: `1px solid ${isPaid ? "rgba(27, 98, 75, 0.2)" : "rgba(220, 38, 38, 0.15)"}`,
+        background: isPaid ? "rgba(0, 105, 148, 0.08)" : "rgba(220, 38, 38, 0.06)",
+        color: isPaid ? "#006994" : "#dc2626",
+        border: `1px solid ${isPaid ? "rgba(0, 105, 148, 0.2)" : "rgba(220, 38, 38, 0.15)"}`,
         textTransform: "uppercase",
         letterSpacing: "0.04em",
         whiteSpace: "nowrap",
@@ -489,7 +489,7 @@ export default function AccountPage() {
       <main className="account-page">
         <div className="account-container">
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: "16px" }}>
-            <div style={{ width: "40px", height: "40px", border: "3px solid rgba(27,98,75,0.15)", borderTopColor: "#1b624b", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            <div style={{ width: "40px", height: "40px", border: "3px solid rgba(0, 105, 148,0.15)", borderTopColor: "#006994", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
             <p style={{ color: "var(--muted)", fontSize: "14px", fontWeight: 600 }}>Loading your account...</p>
           </div>
         </div>
@@ -507,8 +507,8 @@ export default function AccountPage() {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(27, 98, 75, 0.15); }
-          50% { box-shadow: 0 0 0 8px rgba(27, 98, 75, 0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(0, 105, 148, 0.15); }
+          50% { box-shadow: 0 0 0 8px rgba(0, 105, 148, 0); }
         }
         .order-card { animation: fadeSlideIn 0.35s ease both; }
         .order-card:nth-child(1) { animation-delay: 0.05s; }
@@ -521,7 +521,7 @@ export default function AccountPage() {
           transition: all 0.18s ease; color: var(--muted); display: inline-flex; align-items: center; gap: 6px;
           white-space: nowrap;
         }
-        .orders-filter-tab:hover { border-color: rgba(27, 98, 75, 0.3); color: var(--brand-color); }
+        .orders-filter-tab:hover { border-color: rgba(0, 105, 148, 0.3); color: var(--brand-color); }
         .orders-filter-tab.active { background: var(--brand-color); color: #fff; border-color: var(--brand-color); }
         .orders-filter-tab .tab-count {
           display: inline-flex; align-items: center; justify-content: center;
@@ -536,8 +536,8 @@ export default function AccountPage() {
         }
         .order-action-btn.cancel { color: #dc2626; border-color: rgba(220,38,38,0.3); background: rgba(220,38,38,0.02); }
         .order-action-btn.cancel:hover { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.5); }
-        .order-action-btn.track { color: #1b624b; border-color: rgba(27,98,75,0.4); background: #fff; }
-        .order-action-btn.track:hover { background: rgba(27,98,75,0.04); }
+        .order-action-btn.track { color: #006994; border-color: rgba(0, 105, 148,0.4); background: #fff; }
+        .order-action-btn.track:hover { background: rgba(0, 105, 148,0.04); }
         .order-action-btn.reorder { color: #2563eb; border-color: rgba(37,99,235,0.3); background: rgba(37,99,235,0.02); }
         .order-action-btn.reorder:hover { background: rgba(37,99,235,0.06); }
         .account-tab-bar { display: flex; gap: 4px; padding: 5px; background: #f0ede8; border-radius: 12px; margin-bottom: 32px; }
@@ -546,7 +546,7 @@ export default function AccountPage() {
           border: none; cursor: pointer; transition: all 0.18s ease; color: var(--muted);
           background: transparent; display: flex; align-items: center; justify-content: center; gap: 7px;
         }
-        .account-tab-btn.active { background: #fff; color: var(--brand-color); box-shadow: 0 4px 14px rgba(27,98,75,0.1); }
+        .account-tab-btn.active { background: #fff; color: var(--brand-color); box-shadow: 0 4px 14px rgba(0, 105, 148,0.1); }
         .order-item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
         .order-item-row:not(:last-child) { border-bottom: 1px solid rgba(211,201,189,0.25); }
         .order-search-wrap { position: relative; }
@@ -556,7 +556,7 @@ export default function AccountPage() {
           border-radius: 10px; background: #fff; font-size: 13px; color: var(--ink);
           outline: none; transition: border-color 0.18s;
         }
-        .order-search-input:focus { border-color: rgba(27,98,75,0.4); box-shadow: 0 0 0 3px rgba(27,98,75,0.06); }
+        .order-search-input:focus { border-color: rgba(0, 105, 148,0.4); box-shadow: 0 0 0 3px rgba(0, 105, 148,0.06); }
         .order-progress-bar { display: flex; align-items: center; gap: 0; margin: 16px 0 4px; }
         .order-progress-step {
           display: flex; flex-direction: column; align-items: center; flex: 1; position: relative;
@@ -565,17 +565,17 @@ export default function AccountPage() {
           content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px;
           background: rgba(211,201,189,0.4); z-index: 0;
         }
-        .order-progress-step.done:not(:last-child)::after { background: #1b624b; }
+        .order-progress-step.done:not(:last-child)::after { background: #006994; }
         .order-progress-dot {
           width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
           font-size: 12px; font-weight: 800; z-index: 1; border: 2px solid rgba(211,201,189,0.5);
           background: #f8f6f2; color: var(--muted);
         }
-        .order-progress-dot.done { background: #1b624b; border-color: #1b624b; color: #fff; }
-        .order-progress-dot.active { background: #fff; border-color: #1b624b; color: #1b624b; animation: pulseGlow 1.8s infinite; }
+        .order-progress-dot.done { background: #006994; border-color: #006994; color: #fff; }
+        .order-progress-dot.active { background: #fff; border-color: #006994; color: #006994; animation: pulseGlow 1.8s infinite; }
         .order-progress-label { font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 5px; text-align: center; }
-        .order-progress-label.done { color: #1b624b; }
-        .order-progress-label.active { color: #1b624b; }
+        .order-progress-label.done { color: #006994; }
+        .order-progress-label.active { color: #006994; }
       `}</style>
 
       <div className="account-container">
@@ -613,7 +613,7 @@ export default function AccountPage() {
             <Package size={16} />
             My Orders
             {orders.length > 0 && (
-              <span style={{ fontSize: "10px", fontWeight: 800, padding: "2px 7px", borderRadius: "20px", background: activeTab === "orders" ? "rgba(27,98,75,0.1)" : "rgba(0,0,0,0.06)", color: activeTab === "orders" ? "#1b624b" : "var(--muted)" }}>
+              <span style={{ fontSize: "10px", fontWeight: 800, padding: "2px 7px", borderRadius: "20px", background: activeTab === "orders" ? "rgba(0, 105, 148,0.1)" : "rgba(0,0,0,0.06)", color: activeTab === "orders" ? "#006994" : "var(--muted)" }}>
                 {orders.length}
               </span>
             )}
@@ -645,7 +645,7 @@ export default function AccountPage() {
                 type="button"
                 onClick={loadOrders}
                 style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 14px", borderRadius: "9999px", border: "1px solid rgba(211,201,189,0.6)", background: "#fff", fontSize: "12.5px", fontWeight: 700, color: "var(--muted)", cursor: "pointer", transition: "all 0.18s" }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(27,98,75,0.4)"; e.currentTarget.style.color = "#1b624b"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(0, 105, 148,0.4)"; e.currentTarget.style.color = "#006994"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(211,201,189,0.6)"; e.currentTarget.style.color = "var(--muted)"; }}
               >
                 <RefreshCw size={13} />
@@ -695,7 +695,7 @@ export default function AccountPage() {
             {/* Orders list */}
             {filteredOrders.length === 0 ? (
               <div style={{ padding: "60px 24px", textAlign: "center", background: "#fff", border: "1px solid rgba(211,201,189,0.4)", borderRadius: "20px" }}>
-                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(27,98,75,0.05)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--brand-color)" }}>
+                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(0, 105, 148,0.05)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--brand-color)" }}>
                   {ordersSearch ? <Search size={26} /> : <ShoppingBag size={26} />}
                 </div>
                 <h3 style={{ fontSize: "17px", fontWeight: 800, margin: "0 0 8px", color: "var(--ink)" }}>
@@ -711,7 +711,7 @@ export default function AccountPage() {
                     <X size={13} /> Clear Search
                   </button>
                 ) : (
-                  <Link href="/shop" style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px", borderRadius: "9999px", background: "#1b624b", color: "#fff", fontWeight: 700, fontSize: "13px", textDecoration: "none" }}>
+                  <Link href="/shop" style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px", borderRadius: "9999px", background: "#006994", color: "#fff", fontWeight: 700, fontSize: "13px", textDecoration: "none" }}>
                     <Sparkles size={14} />
                     Start Shopping
                   </Link>
@@ -740,8 +740,8 @@ export default function AccountPage() {
                         background: "#fff",
                         overflow: "hidden",
                         boxShadow: isExpanded
-                          ? "0 8px 32px rgba(27,98,75,0.07)"
-                          : "0 2px 8px rgba(27,98,75,0.02)",
+                          ? "0 8px 32px rgba(0, 105, 148,0.07)"
+                          : "0 2px 8px rgba(0, 105, 148,0.02)",
                         transition: "box-shadow 0.2s ease",
                       }}
                     >
@@ -757,7 +757,7 @@ export default function AccountPage() {
                           flexWrap: "wrap",
                           gap: "12px",
                           userSelect: "none",
-                          background: isExpanded ? "rgba(27,98,75,0.015)" : "#fff",
+                          background: isExpanded ? "rgba(0, 105, 148,0.015)" : "#fff",
                           transition: "background 0.2s ease",
                         }}
                       >
@@ -823,7 +823,7 @@ export default function AccountPage() {
                         <div style={{ borderTop: "1px solid rgba(211,201,189,0.25)", animation: "fadeSlideIn 0.25s ease" }}>
                           {/* Order progress tracker */}
                           {order.status !== "cancelled" && (
-                            <div style={{ padding: "16px 24px", background: "rgba(27,98,75,0.015)", borderBottom: "1px solid rgba(211,201,189,0.15)" }}>
+                            <div style={{ padding: "16px 24px", background: "rgba(0, 105, 148,0.015)", borderBottom: "1px solid rgba(211,201,189,0.15)" }}>
                               <p style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px" }}>Order Progress</p>
                               <div className="order-progress-bar">
                                 {allSteps.map((step, idx) => {
@@ -932,7 +932,7 @@ export default function AccountPage() {
 
             {/* Summary stats */}
             {orders.length > 0 && (
-              <div style={{ marginTop: "24px", padding: "16px 20px", background: "rgba(27,98,75,0.03)", border: "1px solid rgba(27,98,75,0.08)", borderRadius: "14px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "16px" }}>
+              <div style={{ marginTop: "24px", padding: "16px 20px", background: "rgba(0, 105, 148,0.03)", border: "1px solid rgba(0, 105, 148,0.08)", borderRadius: "14px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "16px" }}>
                 {[
                   { label: "Total Orders", value: orders.length, icon: Package },
                   { label: "Total Spent", value: `Rs. ${orders.reduce((s, o) => s + (o.total || 0), 0).toLocaleString("en-IN")}`, icon: ReceiptText },
@@ -960,7 +960,7 @@ export default function AccountPage() {
             {/* Quick links */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginBottom: "28px" }}>
               {[
-                { icon: Package, label: "My Orders", count: orders.length, onClick: () => setActiveTab("orders"), color: "#1b624b" },
+                { icon: Package, label: "My Orders", count: orders.length, onClick: () => setActiveTab("orders"), color: "#006994" },
                 { icon: PackageX, label: "Cancel Order", href: "/orders/cancel", color: "#dc2626" },
                 { icon: Truck, label: "Track Order", href: "/returns/track", color: "#2563eb" },
                 { icon: ShoppingBag, label: "Shop Now", href: "/shop", color: "#7c3aed" },

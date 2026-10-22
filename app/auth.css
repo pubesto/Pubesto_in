@@ -2,7 +2,7 @@
 .account-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 18% 12%, rgba(63, 100, 105, 0.1), transparent 32%),
+    radial-gradient(circle at 18% 12%, rgba(0, 74, 105, 0.1), transparent 32%),
     linear-gradient(180deg, #f8f6f2 0%, #ffffff 100%);
   padding: 96px 24px 80px;
 }
@@ -26,8 +26,8 @@
 .account-address-card,
 .account-empty-card {
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(63, 100, 105, 0.14);
-  box-shadow: 0 22px 60px rgba(63, 100, 105, 0.11);
+  border: 1px solid rgba(0, 74, 105, 0.14);
+  box-shadow: 0 22px 60px rgba(0, 74, 105, 0.11);
 }
 
 .auth-panel {
@@ -120,7 +120,7 @@
 .auth-tabs button.active {
   background: #fff;
   color: var(--brand-color);
-  box-shadow: 0 8px 18px rgba(63, 100, 105, 0.1);
+  box-shadow: 0 8px 18px rgba(0, 74, 105, 0.1);
 }
 
 .auth-form {
@@ -157,7 +157,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(63, 100, 105, 0.2);
+  border: 1px solid rgba(0, 74, 105, 0.2);
   border-radius: 10px;
   padding: 0 12px;
   background: #fff;
@@ -194,12 +194,12 @@
 
 .auth-password-toggle:hover,
 .auth-password-toggle:focus-visible {
-  background: rgba(63, 100, 105, 0.08);
+  background: rgba(0, 74, 105, 0.08);
   color: var(--brand-color);
 }
 
 .auth-password-toggle:focus-visible {
-  outline: 2px solid rgba(63, 100, 105, 0.26);
+  outline: 2px solid rgba(0, 74, 105, 0.26);
   outline-offset: 2px;
 }
 
@@ -218,11 +218,11 @@
 .auth-oauth-divider::after {
   content: "";
   height: 1px;
-  background: rgba(63, 100, 105, 0.14);
+  background: rgba(0, 74, 105, 0.14);
 }
 
 .account-card input {
-  border: 1px solid rgba(63, 100, 105, 0.2);
+  border: 1px solid rgba(0, 74, 105, 0.2);
   border-radius: 10px;
   padding: 0 12px;
   background: #fff;
@@ -265,7 +265,7 @@
 
 .auth-link-button,
 .account-secondary {
-  border: 1px solid rgba(63, 100, 105, 0.2);
+  border: 1px solid rgba(0, 74, 105, 0.2);
   background: #fff;
   color: var(--brand-color);
 }
@@ -382,7 +382,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(63, 100, 105, 0.16);
+  border: 1px solid rgba(0, 74, 105, 0.16);
   border-radius: 10px;
   padding: 13px 14px;
   color: var(--brand-color);
@@ -495,14 +495,14 @@
   width: 58px !important;
   height: 58px !important;
   border-radius: 50% !important;
-  background: var(--brand-color, #3f6469) !important;
+  background: var(--brand-color, #004a69) !important;
   color: #ffffff !important;
   font-weight: 800 !important;
   font-size: 18px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 8px 24px rgba(63, 100, 105, 0.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 74, 105, 0.2) !important;
   flex-shrink: 0 !important;
   border: 2px solid #ffffff !important;
 }
@@ -520,9 +520,9 @@
 
 .account-link-list a:hover {
   transform: translateX(6px) !important;
-  border-color: var(--brand-color, #3f6469) !important;
-  box-shadow: 0 6px 20px rgba(63, 100, 105, 0.08) !important;
-  color: var(--brand-color, #3f6469) !important;
+  border-color: var(--brand-color, #004a69) !important;
+  box-shadow: 0 6px 20px rgba(0, 74, 105, 0.08) !important;
+  color: var(--brand-color, #004a69) !important;
 }
 
 /* Premium Empty State Addresses styling */
@@ -535,17 +535,17 @@
   text-align: center !important;
   padding: 40px 24px !important;
   background: rgba(255, 255, 255, 0.8) !important;
-  border: 1px dashed rgba(63, 100, 105, 0.25) !important;
+  border: 1px dashed rgba(0, 74, 105, 0.25) !important;
   border-radius: 16px !important;
-  box-shadow: 0 10px 30px rgba(63, 100, 105, 0.04) !important;
+  box-shadow: 0 10px 30px rgba(0, 74, 105, 0.04) !important;
 }
 
 .empty-card-icon {
   width: 52px !important;
   height: 52px !important;
   border-radius: 50% !important;
-  background: rgba(63, 100, 105, 0.08) !important;
-  color: var(--brand-color, #3f6469) !important;
+  background: rgba(0, 74, 105, 0.08) !important;
+  color: var(--brand-color, #004a69) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -603,9 +603,9 @@
   border-radius: 10px;
   font-size: 13.5px;
   font-weight: 700;
-  background: rgba(27, 98, 75, 0.07);
-  color: #1b624b;
-  border: 1px solid rgba(27, 98, 75, 0.15);
+  background: rgba(0, 105, 148, 0.07);
+  color: #006994;
+  border: 1px solid rgba(0, 105, 148, 0.15);
   margin-bottom: 20px;
 }
 
@@ -621,7 +621,7 @@
 
 /* Order card hover lift */
 .account-card.order-card:hover {
-  box-shadow: 0 10px 36px rgba(27, 98, 75, 0.08) !important;
+  box-shadow: 0 10px 36px rgba(0, 105, 148, 0.08) !important;
   transform: translateY(-1px);
   transition: all 0.22s ease;
 }

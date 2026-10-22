@@ -209,7 +209,7 @@ function ReturnDetailModal({ ret, pin, onClose, onUpdate }) {
                   fontFamily: "monospace",
                   fontSize: "20px",
                   fontWeight: 800,
-                  color: "var(--brand-color, #1b624b)",
+                  color: "var(--brand-color, #006994)",
                   margin: 0,
                   letterSpacing: "0.04em",
                 }}
@@ -701,7 +701,7 @@ export default function AdminReturnsPage() {
                         style={{
                           fontFamily: "monospace",
                           fontWeight: 700,
-                          color: "var(--brand-color, #1b624b)",
+                          color: "var(--brand-color, #006994)",
                           fontSize: "13px",
                         }}
                       >

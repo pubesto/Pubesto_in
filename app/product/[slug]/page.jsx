@@ -1,818 +1,468 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX, X, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  BadgeCheck,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Minus,
+  PackageCheck,
+  Plus,
+  RotateCcw,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Tag,
+  Truck,
+  Volume2,
+  VolumeX,
+  Zap,
+} from "lucide-react";
 import { useStore } from "../../../components/StoreContext";
+import ProductRail from "../../../components/ProductRail";
 import { peopleChoiceVideos } from "../../../lib/data";
+import { formatINR, getDiscountPercent, getListableProducts, getOriginalPrice, getSalePrice } from "../../../lib/utils";
 
-
-const INDIAN_NAMES = [
-  "Rahul", "Kavya", "Vivek", "Sunita", "Srinivas", "Priya", "Amit", "Riya", 
-  "Deepa", "Harish", "Ananya", "Vikram", "Sneha", "Rohan", "Pooja", "Arjun", 
-  "Karan", "Neha", "Aditya", "Manish", "Shikha", "Aman", "Rajesh", "Meera", 
-  "Suresh", "Divya", "Sanjay", "Komal", "Abhishek", "Preeti"
-];
-
-const INDIAN_CITIES = [
-  "Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad", "Chennai", "Kolkata", 
-  "Ahmedabad", "Gurgaon", "Noida", "Jaipur", "Lucknow", "Chandigarh", "Surat", 
-  "Kochi", "Indore", "Patna", "Bhopal", "Visakhapatnam", "Coimbatore"
-];
-
-const getDeterministicSales = (prod) => {
-  if (!prod) return 1100;
-  const hash = (prod.slug || prod.name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return 850 + (hash % 650); // Generates between 850 and 1500
-};
-
-const getDeterministicStock = (prod, colorName) => {
-  if (!prod) return 8;
-  const key = (prod.slug || "") + (colorName || "");
-  const hash = key.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return 5 + (hash % 10); // Generates between 5 and 14
-};
+const FREE_SHIPPING_THRESHOLD = 500;
 
 function productMatchesRouteSlug(product, routeSlug) {
   const target = String(routeSlug || "").toLowerCase();
   if (!product || !target) return false;
-
-  const candidates = [
-    product.slug,
-    product.shopifyHandle,
-    product.handle,
-    ...(product.slugAliases || []),
-  ]
+  const candidates = [product.slug, product.shopifyHandle, product.handle, ...(product.slugAliases || [])]
     .filter(Boolean)
     .map((value) => String(value).toLowerCase());
-
   return candidates.includes(target) || candidates.some((candidate) => candidate.includes(target));
 }
 
-const parsePrice = (priceStr) => {
-  const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
-  return isNaN(num) || num === 0 ? null : num;
-};
+function Stars({ value, size = 15 }) {
+  const rounded = Math.round(Number(value) || 0);
+  return (
+    <span className="pb-stars" aria-label={`${value} out of 5 stars`}>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Star key={i} size={size} fill={i < rounded ? "currentColor" : "none"} />
+      ))}
+    </span>
+  );
+}
 
-const formatRupeePrice = (priceStr) => {
-  if (!priceStr) return "";
-  return priceStr.replace(/(Rs\.|Rs|RS|INR)\s*/gi, "₹");
-};
+function getInitials(name) {
+  return (name || "?").split(" ").map((part) => part[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function Gallery({ images, active, onSelect, name, badge }) {
+  const [zoom, setZoom] = useState(null);
+
+  return (
+    <div className={`pb-gallery ${images.length < 2 ? "is-single" : ""}`}>
+      {images.length > 1 ? (
+        <div className="pb-thumbs">
+          {images.map((img) => (
+            <button key={img} type="button" className={`pb-thumb ${active === img ? "is-active" : ""}`} onClick={() => onSelect(img)} aria-label="Show image">
+              <img src={img} alt="" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <div
+        className="pb-stage"
+        onMouseMove={(e) => {
+          if (window.matchMedia("(hover: none)").matches) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          setZoom(`${((e.clientX - rect.left) / rect.width) * 100}% ${((e.clientY - rect.top) / rect.height) * 100}%`);
+        }}
+        onMouseLeave={() => setZoom(null)}
+      >
+        <motion.img
+          key={active}
+          src={active}
+          alt={name}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35 }}
+          style={zoom ? { transform: "scale(1.9)", transformOrigin: zoom } : undefined}
+        />
+        {badge}
+      </div>
+    </div>
+  );
+}
 
 function ProductPageContent() {
   const { slug } = useParams();
-  const { 
-    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen, isLoggedIn, isAuthLoading, user, refreshAuthSession, paymentMethod
+  const {
+    addToCart,
+    checkout,
+    getProductId,
+    products,
+    isLoggedIn,
+    isAuthLoading,
+    paymentMethod,
   } = useStore();
-  const [activeTab, setActiveTab] = useState("specs");
-  const [addEffectKey, setAddEffectKey] = useState(null);
+
+  const product = products.find((p) => productMatchesRouteSlug(p, slug));
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
-  const [videoSoundOn, setVideoSoundOn] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
-  const [couponInput, setCouponInput] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [couponError, setCouponError] = useState("");
-  const [couponSuccess, setCouponSuccess] = useState("");
+  const [videoSoundOn, setVideoSoundOn] = useState(false);
+  const [reviewData, setReviewData] = useState({ reviews: [], summary: null });
 
-  // Dynamic ticker states
-  const [unitsSold, setUnitsSold] = useState(1100);
-  const [stockCount, setStockCount] = useState(8);
-  const [activeViewers, setActiveViewers] = useState(24);
-  const [tickerIndex, setTickerIndex] = useState(0);
-  const [lastBuyer, setLastBuyer] = useState({ name: "Rahul", city: "Mumbai", qty: 2 });
+  const colors = useMemo(
+    () => (Array.isArray(product?.colors) ? product.colors.filter((c) => c && c.name && c.hex) : []),
+    [product]
+  );
+  const selectedColorName = selectedColor?.name || colors[0]?.name || "";
 
+  // Reset selection when the product changes.
   useEffect(() => {
-    // Force scroll to top with a slight delay to ensure content is ready
-    const timer = setTimeout(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }, 10);
-    
-    // Initialize product states
-    const product = products.find((p) => productMatchesRouteSlug(p, slug));
-    if (product) {
-      if (product.colors && product.colors.length > 0) {
-        // If current selectedColor is not in new product.colors, reset to first color
-        const isCurrentColorValid = selectedColor && product.colors.some(
-          (c) => c.name.toLowerCase() === selectedColor.name.toLowerCase()
-        );
-        
-        if (!isCurrentColorValid) {
-          setSelectedColor(product.colors[0]);
-          if (product.colors[0].image) {
-            setActiveImage(product.colors[0].image);
-          } else {
-            setActiveImage(product.image);
-          }
-        } else {
-          // Keep existing color but update its reference from the new list
-          const matched = product.colors.find(
-            (c) => c.name.toLowerCase() === selectedColor.name.toLowerCase()
-          );
-          setSelectedColor(matched);
-        }
-      } else {
-        setSelectedColor(null);
-        setActiveImage(product.image);
-      }
-    }
-    
-    return () => clearTimeout(timer);
-  }, [slug, products]);
-
-  const product = products.find((p) => productMatchesRouteSlug(p, slug));
-
-  const productColors = product && Array.isArray(product.colors)
-    ? product.colors.filter((color) => color && color.name && color.hex)
-    : [];
-  const selectedColorName = selectedColor?.name || productColors[0]?.name || "";
-  const basePrice = product ? (product.salePrice || parsePrice(product.price) || 599) : 599;
-  const baseOldPrice = product ? (product.originalPrice || parsePrice(product.oldPrice) || Math.round(basePrice * 1.35)) : 809;
-
-  // Initialize and update ticker data based on product
-  useEffect(() => {
-    if (product) {
-      const sales = getDeterministicSales(product);
-      setUnitsSold(sales);
-      
-      const hash = (product.slug || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      setActiveViewers(12 + (hash % 20));
-      
-      const initialColor = product.colors && product.colors.length > 0 ? product.colors[0].name : "";
-      setStockCount(getDeterministicStock(product, initialColor));
-    }
-  }, [product]);
-
-  // Update variant stock levels when color is changed
-  useEffect(() => {
-    if (product && selectedColor) {
-      setStockCount(getDeterministicStock(product, selectedColor.name));
-    }
-  }, [selectedColor, product]);
-
-  // Periodically increment sales and toggle viewer count / stock levels
-  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     if (!product) return;
-    
-    const interval = setInterval(() => {
-      // Randomly increment units sold
-      const increment = Math.random() > 0.5 ? 2 : 1;
-      setUnitsSold(prev => prev + increment);
-      
-      // Select new buyer details
-      const randomName = INDIAN_NAMES[Math.floor(Math.random() * INDIAN_NAMES.length)];
-      const randomCity = INDIAN_CITIES[Math.floor(Math.random() * INDIAN_CITIES.length)];
-      const randomQty = Math.random() > 0.7 ? 4 : (Math.random() > 0.4 ? 2 : 1);
-      
-      setLastBuyer({
-        name: randomName,
-        city: randomCity,
-        qty: randomQty
-      });
-      
-      // Randomly toggle viewers slightly
-      setActiveViewers(prev => {
-        const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
-        return Math.max(8, prev + change);
-      });
-      
-      // Randomly decrement stock count occasionally
-      if (Math.random() > 0.75) {
-        setStockCount(prev => Math.max(2, prev - 1));
-      }
-    }, 12000 + Math.random() * 6000); // 12-18s
-    
-    return () => clearInterval(interval);
-  }, [product]);
+    const firstColor = colors[0] || null;
+    setSelectedColor(firstColor);
+    setActiveImage(firstColor?.image || product.image);
+    setQuantity(1);
+  }, [product?.slug]);
 
-  // Cycle through ticker messages
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTickerIndex(prev => (prev + 1) % 4);
-    }, 6000);
-    return () => clearInterval(interval);
+    document.body.classList.add("pb-has-sticky-buy");
+    return () => document.body.classList.remove("pb-has-sticky-buy");
   }, []);
 
-  // Auto-checkout if buy_now query param is present and user is logged in
+  useEffect(() => {
+    if (!product?.slug) return undefined;
+    let active = true;
+    fetch(`/api/reviews?productSlug=${encodeURIComponent(product.slug)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => active && data && setReviewData({ reviews: data.reviews || [], summary: data.summary }))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [product?.slug]);
+
+  // Resume a "Buy now" that was interrupted by login/signup.
   useEffect(() => {
     if (isAuthLoading || !isLoggedIn || !product) return;
-
     const params = new URLSearchParams(window.location.search);
-    const buyNow = params.get("buy_now");
-    if (buyNow === "true") {
-      const qtyParam = parseInt(params.get("qty") || "1", 10);
-      const colorParam = params.get("color");
-
-      // Set state to match query parameters so user sees the color & qty they selected
-      if (qtyParam > 0) {
-        setQuantity(qtyParam);
-      }
-      if (colorParam && product.colors) {
-        const matched = product.colors.find(c => c.name.toLowerCase() === colorParam.toLowerCase());
-        if (matched) {
-          setSelectedColor(matched);
-          setActiveImage(matched.image || product.image);
-        }
-      }
-
-      // Clear query parameters from URL so refreshing won't trigger buy now again
-      const newUrl = window.location.pathname;
-      window.history.replaceState(null, "", newUrl);
-
-      // Trigger checkout immediately
-      handleBuyNow(qtyParam, colorParam || selectedColorName);
+    if (params.get("buy_now") !== "true") return;
+    const qty = parseInt(params.get("qty") || "1", 10);
+    const colorParam = params.get("color");
+    if (qty > 0) setQuantity(qty);
+    const matched = colorParam && colors.find((c) => c.name.toLowerCase() === colorParam.toLowerCase());
+    if (matched) {
+      setSelectedColor(matched);
+      setActiveImage(matched.image || product.image);
     }
-  }, [isAuthLoading, isLoggedIn, product, selectedColorName]);
+    window.history.replaceState(null, "", window.location.pathname);
+    handleBuyNow(qty, colorParam || selectedColorName);
+  }, [isAuthLoading, isLoggedIn, product?.slug]);
+
+  const listable = useMemo(() => getListableProducts(products), [products]);
+  const related = useMemo(() => {
+    if (!product) return [];
+    const others = listable.filter((p) => p.slug !== product.slug);
+    const sameCategory = others.filter((p) => (p.categories || []).some((c) => product.categories?.includes(c)));
+    return [...sameCategory, ...others.filter((p) => !sameCategory.includes(p))].slice(0, 10);
+  }, [listable, product]);
 
   if (!product) {
     return (
-      <div className="error-page">
-        <h1>Product not found</h1>
-        <Link href="/">Return to Home</Link>
-      </div>
+      <main className="pb-container">
+        <div className="pb-panel pb-empty" style={{ margin: "48px 0" }}>
+          <h3>Product not found</h3>
+          <p>It may have sold out or moved.</p>
+          <Link className="pb-btn pb-btn-primary" href="/shop" prefetch={false}>Browse all products</Link>
+        </div>
+      </main>
     );
   }
 
-  const cartQuantity = cartItems.find((item) => item.id === getProductId(product))?.quantity || 0;
+  const outOfStock = product.inStock === false;
+  const sale = getSalePrice(product);
+  const original = getOriginalPrice(product);
+  const discount = getDiscountPercent(product);
+  const lineTotal = sale * quantity;
 
-  function handleAddToCart() {
-    if (product.inStock === false) return;
+  const images = Array.from(
+    new Set([product.image, ...(product.gallery || []), ...colors.map((c) => c.image)].filter(Boolean))
+  );
+  const highlights = (product.highlights || []).filter(Boolean);
+  const specs = product.specifications ? Object.entries(product.specifications) : [];
+  const video = peopleChoiceVideos.find((v) => v.slug === product.slug && v.video && !v.video.includes("pin.it"));
 
-    const nextKey = Date.now();
-    setAddEffectKey(nextKey);
-    window.setTimeout(() => {
-      setAddEffectKey((currentKey) => (currentKey === nextKey ? null : currentKey));
-    }, 1050);
+  const apiReviews = reviewData.reviews;
+  const reviews = apiReviews.length
+    ? apiReviews.map((r) => ({ id: r.id, name: r.customerName, text: r.text, rating: r.rating, verified: true }))
+    : (product.reviewsList || []).map((r, i) => ({ id: i, name: r.name, text: r.text, rating: null }));
+  const ratingValue = reviewData.summary?.count ? reviewData.summary.averageRating : product.rating;
+  const ratingCount = reviewData.summary?.count || product.reviews;
 
-    // Pass the selected options and quantity
-    addToCart(product, {
-      color: selectedColorName,
-      quantity: quantity 
-    });
+  function selectColor(color) {
+    if (!color || color.available === false) return;
+    setSelectedColor(color);
+    setActiveImage(color.image || product.image);
   }
 
+  function selectImage(img) {
+    setActiveImage(img);
+    const matched = colors.find((c) => c.image === img);
+    if (matched) setSelectedColor(matched);
+  }
 
+  function handleAddToCart() {
+    if (outOfStock) return;
+    addToCart(product, { color: selectedColorName, quantity });
+  }
 
   async function handleBuyNow(overrideQty = null, overrideColor = null) {
-    if (product.inStock === false || isBuyingNow) return;
+    if (outOfStock || isBuyingNow) return;
+    const qty = overrideQty ?? quantity;
+    const colorName = overrideColor ?? selectedColorName;
 
-    const currentQty = overrideQty !== null ? overrideQty : quantity;
-    const currentColorName = overrideColor !== null ? overrideColor : selectedColorName;
-
-    // Check if user is logged in
     if (!isLoggedIn) {
-      // Store current product page URL with query params for auto-checkout after signup
-      const redirectUrl = `${window.location.pathname}?buy_now=true&qty=${currentQty}&color=${encodeURIComponent(currentColorName)}`;
-      window.location.href = `/account/login?mode=signup&redirect=${encodeURIComponent(redirectUrl)}`;
+      const redirect = `${window.location.pathname}?buy_now=true&qty=${qty}&color=${encodeURIComponent(colorName)}`;
+      window.location.href = `/account/login?mode=signup&redirect=${encodeURIComponent(redirect)}`;
       return;
     }
 
     setIsBuyingNow(true);
-
     try {
-      const productToBuy = currentColorName
-        ? { ...product, selectedColor: currentColorName }
-        : product;
-
+      const productToBuy = colorName ? { ...product, selectedColor: colorName } : product;
       await checkout({
-        items: [{
-          id: getProductId(productToBuy),
-          product: productToBuy,
-          color: currentColorName,
-          quantity: currentQty
-        }],
-        amount: basePrice * currentQty,
-        paymentMethod: paymentMethod
+        items: [{ id: getProductId(productToBuy), product: productToBuy, color: colorName, quantity: qty }],
+        amount: sale * qty,
+        paymentMethod,
       });
     } catch (err) {
-      console.warn("Shopify checkout error:", err.message);
+      console.warn("Checkout error:", err.message);
     } finally {
       setIsBuyingNow(false);
     }
   }
 
-  function adjustQuantity(amount) {
-    setQuantity(prev => Math.max(1, prev + amount));
-  }
-
-  function openCustomizationPopup(bundleId) {
-    const colors = Array.isArray(product.colors) ? product.colors.filter(c => c && c.name && c.hex) : [];
-    if (colors.length === 0) {
-      return; // Bypass popup entirely if product has no color options
-    }
-    const size = bundleId === 1 ? 1 : bundleId; // bundleId is 1, 2, or 4
-    const nextColors = normalizeBundleColors(bundleColorSelections[size], size);
-    setPopupBundleSize(size);
-    setPopupColors(nextColors);
-    setPopupQuantity(1);
-    setBundlePopupError("");
-    setBundlePopupNotice("");
-    setIsBundlePopupOpen(true);
-  }
-
-  // Related products (Curated Companions) - prioritizing the 4 curated companions in image 2
-  const preferredSlugs = [
-    "b-65-do-your-best-notebook-bottle",
-    "arctic-air-ultra-cooler",
-    "mini-portable-wall-mounted-ac",
-    "mist-double-headed-led-fan",
-    "adjustable-bladeless-neck-fan",
-    "mini-mist-cooling-fan"
-  ];
-
-  let relatedProducts = preferredSlugs
-    .filter((slug) => slug !== product.slug)
-    .map((slug) => products.find((p) => p.slug === slug || (p.slugAliases && p.slugAliases.includes(slug))))
-    .filter(Boolean)
-    .slice(0, 4);
-
-  if (relatedProducts.length < 4) {
-    const remaining = products.filter((p) => p.slug !== product.slug && !relatedProducts.some((rp) => rp.slug === p.slug));
-    relatedProducts = [...relatedProducts, ...remaining].slice(0, 4);
-  }
-
-  const getCompanionDealLabel = (item) => {
-    const sale = item.salePrice || parsePrice(item.price);
-    const original = item.originalPrice || parsePrice(item.oldPrice);
-    if (sale && original && original > sale) {
-      return `${Math.round(((original - sale) / original) * 100)}% OFF`;
-    }
-    return item.badge || "Handpicked";
-  };
-
-  const getCompanionMeta = (item) => {
-    if (Array.isArray(item.highlights) && item.highlights[0]) return item.highlights[0];
-    if (item.detail) return item.detail;
-    return "Premium daily essential";
-  };
-
-  const productHighlights = Array.isArray(product.highlights) && product.highlights.filter(Boolean).length > 0
-    ? product.highlights.filter(Boolean)
-    : ["Premium Quality", "Artisanal Design", "Durability Guaranteed"];
-
-  const FREE_SHIPPING_THRESHOLD = 500;
-  const SHIPPING_FEE = 70;
-
-  const getShippingSubtext = (price, label = "") => {
-    const shippingText = price >= FREE_SHIPPING_THRESHOLD
-      ? "Free Priority Shipping"
-      : `+ ₹${SHIPPING_FEE} Shipping (Free above ₹${FREE_SHIPPING_THRESHOLD})`;
-    return label ? `${label} | ${shippingText}` : shippingText;
-  };
-
-  const displayBadge = product.inStock === false ? 'OUT OF STOCK' : product.badge;
-  const displayBadgeClass = product.inStock === false ? 'badge-out-of-stock' : (product.badgeClass || 'badge-discount');
-
-  function handleColorSelect(color) {
-    if (!color || color.available === false) return;
-
-    setSelectedColor(color);
-    setActiveImage(color.image || product.image);
-  }
-
-  function handleThumbnailClick(img) {
-    setActiveImage(img);
-    if (productColors && productColors.length > 0) {
-      const matchedColor = productColors.find(c => c.image === img);
-      if (matchedColor) {
-        setSelectedColor(matchedColor);
-      }
-    }
-  }
-
-  function getSelectedProductName() {
-    return selectedColorName ? `${product.name} - ${selectedColorName}` : product.name;
-  }
-
-  function renderReviewStars(rating, size = 14) {
-    const rounded = Math.round(Number(rating || 0));
-    return [0, 1, 2, 3, 4].map((index) => (
-      <Star
-        key={index}
-        size={size}
-        fill={index < rounded ? "currentColor" : "none"}
-        strokeWidth={2}
-      />
-    ));
-  }
-
-  const tickerMessages = [
-    {
-      id: "sales",
-      content: (
-        <span>
-          <strong>
-            <motion.span
-              key={unitsSold}
-              initial={{ scale: 1.25, color: "#ef4444" }}
-              animate={{ scale: 1, color: "#1f2937" }}
-              style={{ display: "inline-block" }}
-              transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
-            >
-              {unitsSold}+ units sold
-            </motion.span>
-          </strong> in the last 24 hours
-        </span>
-      )
-    },
-    {
-      id: "live",
-      content: (
-        <span>
-          🔥 <strong>{lastBuyer.name}</strong> from <strong>{lastBuyer.city}</strong> just bought <strong>{lastBuyer.qty} {lastBuyer.qty > 1 ? "units" : "unit"}</strong>!
-        </span>
-      )
-    },
-    {
-      id: "stock",
-      content: (
-        <span>
-          ⚡ <strong>High Demand:</strong> Only <strong>{stockCount}</strong> left in stock {selectedColorName ? `for ${selectedColorName}` : ""}!
-        </span>
-      )
-    },
-    {
-      id: "viewers",
-      content: (
-        <span>
-          ✨ <strong>{activeViewers} people</strong> are viewing this product right now
-        </span>
-      )
-    }
-  ];
-
   return (
-    <motion.main 
-      className="product-details-page"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="product-hero-container">
-        <div className="product-gallery">
-          <div className="main-image-wrapper">
-            <motion.div 
-              className="main-image"
-              key={activeImage}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="image-glow" />
-              <img
-                src={activeImage || product.image}
-                alt={product.name}
-                loading="eager"
-                decoding="async"
-              />
-              {displayBadge && <span className={`product-status-badge ${displayBadgeClass}`}>{displayBadge}</span>}
-            </motion.div>
+    <main className="pb-container">
+      <nav className="pb-crumbs" aria-label="Breadcrumb" style={{ padding: "20px 0 12px", marginBottom: 0 }}>
+        <Link href="/" prefetch={false}>Home</Link>
+        <span>/</span>
+        {product.categories?.[0] ? (
+          <>
+            <Link href={`/shop?category=${encodeURIComponent(product.categories[0])}`} prefetch={false}>{product.categories[0]}</Link>
+            <span>/</span>
+          </>
+        ) : (
+          <>
+            <Link href="/shop" prefetch={false}>Shop</Link>
+            <span>/</span>
+          </>
+        )}
+        <span>{product.name}</span>
+      </nav>
+
+      <div className="pb-pdp">
+        <Gallery
+          images={images}
+          active={activeImage || product.image}
+          onSelect={selectImage}
+          name={product.name}
+          badge={outOfStock ? <span className="pb-off-tag is-oos">Sold out</span> : discount > 0 ? <span className="pb-off-tag">{discount}% OFF</span> : null}
+        />
+
+        <motion.div className="pb-info" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <h1>{product.name}</h1>
+          <div className="pb-info-meta">
+            {ratingValue ? (
+              <>
+                <span className="pb-rating" style={{ fontSize: 13, padding: "3px 8px" }}>
+                  {ratingValue} <Star size={11} fill="currentColor" strokeWidth={0} />
+                </span>
+                {ratingCount ? <a href="#reviews">{ratingCount} ratings</a> : null}
+              </>
+            ) : null}
+            {product.detail ? <span>· {product.detail}</span> : null}
           </div>
-          
-          {product.gallery && product.gallery.length > 1 && (
-            <div className="thumbnail-strip">
-              {product.gallery.map((img, idx) => (
-                <div 
-                  key={idx} 
-                  className={`thumb-item ${activeImage === img ? 'active' : ''}`}
-                  onClick={() => handleThumbnailClick(img)}
-                  style={{ position: 'relative' }}
-                >
-                  <img src={img} alt="thumbnail" loading="lazy" decoding="async" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        <div className="product-info-panel">
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-
-
-            <h1 className="product-title bold-title">{product.name}</h1>
-
-
-            
-            <div className="price-display-v2">
-              <span className="current-price">Rs. {basePrice}</span>
-              <span className="old-price">Rs. {baseOldPrice}</span>
-              {baseOldPrice - basePrice > 0 && (
-                <span className="discount-tag">SAVE Rs. {baseOldPrice - basePrice}</span>
-              )}
+          <div className="pb-buybox">
+            <div>
+              <div className="pb-pdp-price">
+                <strong>{formatINR(sale)}</strong>
+                {original > sale ? <s>MRP {formatINR(original)}</s> : null}
+                {discount > 0 ? <em>{discount}% OFF</em> : null}
+              </div>
+              <p className="pb-tax-note" style={{ marginTop: 4 }}>Inclusive of all taxes</p>
             </div>
 
-            <div className="shipping-dynamic-notice" style={{ fontSize: "14px", fontWeight: "600", marginTop: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
-              {(basePrice * quantity) >= FREE_SHIPPING_THRESHOLD ? (
-                <span style={{ color: "var(--brand-color)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                  <Check size={16} strokeWidth={3} /> Free Priority Shipping Eligible
-                </span>
-              ) : (
-                <span style={{ color: "#c27803", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                  🚚 Add Rs. {FREE_SHIPPING_THRESHOLD - (basePrice * quantity)} more for Free Shipping (Current: +₹{SHIPPING_FEE} Shipping)
-                </span>
-              )}
+            <div className="pb-offers">
+              <div className="pb-offer">
+                <Zap size={18} color="var(--pb-turq-ink)" fill="var(--pb-turq)" />
+                <span>Pay online & get <b>extra 10% off</b> — you pay <b>{formatINR(Math.round(lineTotal * 0.9))}</b></span>
+              </div>
+              <div className={`pb-offer ${lineTotal >= FREE_SHIPPING_THRESHOLD ? "is-green" : ""}`}>
+                <Truck size={18} color="var(--pb-sea)" />
+                {lineTotal >= FREE_SHIPPING_THRESHOLD ? (
+                  <span><b>FREE shipping</b> on this order</span>
+                ) : (
+                  <span>Add <b>{formatINR(FREE_SHIPPING_THRESHOLD - lineTotal)}</b> more for <b>FREE shipping</b></span>
+                )}
+              </div>
             </div>
 
-            <p className="product-short-desc">
-              {product.description}
-            </p>
-
-            {productColors.length > 0 && (
-              <div className="variant-selector">
-                <p className="variant-label">
-                  Select Color: <span>{selectedColorName}</span>
-                </p>
-                <div className="color-options" role="radiogroup" aria-label="Select product color">
-                  {productColors.map((color, i) => {
-                    const isActive = selectedColor ? selectedColor.name === color.name : i === 0;
-                    const isUnavailable = color.available === false;
+            {colors.length ? (
+              <div>
+                <p className="pb-opt-label">Colour: <b>{selectedColorName}</b></p>
+                <div className="pb-swatches" role="radiogroup" aria-label="Select colour">
+                  {colors.map((color) => {
+                    const isActive = selectedColorName === color.name;
                     return (
-                      <button 
-                        key={color.name} 
-                        className={`color-bubble ${isActive ? 'active' : ''} ${isUnavailable ? 'is-disabled' : ''}`}
-                        style={{ "--swatch-color": color.hex }}
-                        title={isUnavailable ? `${color.name} unavailable` : color.name}
+                      <button
+                        key={color.name}
                         type="button"
                         role="radio"
-                        aria-label={`${color.name}${isUnavailable ? " unavailable" : ""}`}
                         aria-checked={isActive}
-                        disabled={isUnavailable}
-                        onClick={() => handleColorSelect(color)}
+                        className={`pb-swatch ${isActive ? "is-active" : ""}`}
+                        style={{ "--sw": color.hex }}
+                        disabled={color.available === false}
+                        onClick={() => selectColor(color)}
                       >
-                        {isActive ? <Check size={14} strokeWidth={3} /> : null}
+                        <i /> {color.name}
                       </button>
                     );
                   })}
                 </div>
               </div>
-            )}
+            ) : null}
 
-            <div className="product-highlights-v2">
-              <h4>Key Highlights</h4>
-              <div className="highlights-chips">
-                {productHighlights.map((h, i) => (
-                  <span key={i} className="highlight-chip">{h}</span>
-                ))}
+            <div className="pb-buy-row">
+              <div className="pb-qty">
+                <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} aria-label="Decrease quantity"><Minus size={16} /></button>
+                <span>{quantity}</span>
+                <button type="button" onClick={() => setQuantity((q) => q + 1)} aria-label="Increase quantity"><Plus size={16} /></button>
               </div>
+              <button className="pb-btn pb-btn-primary" type="button" onClick={handleAddToCart} disabled={outOfStock}>
+                <ShoppingCart size={18} /> {outOfStock ? "Sold out" : "Add to cart"}
+              </button>
+              <button className="pb-btn pb-btn-turq" type="button" onClick={() => handleBuyNow()} disabled={outOfStock || isBuyingNow}>
+                <Zap size={18} /> {isBuyingNow ? "Redirecting..." : "Buy now"}
+              </button>
             </div>
 
-            <div className="marketing-banners">
-              <div className="banner-green">
-                <ShieldCheck size={14} className="banner-icon-secure" strokeWidth={2.5} />
-                <span>100% Secure Payments — UPI, NetBanking & Cards!</span>
-              </div>
-              <div className="banner-text">
-                <Sparkles size={14} className="banner-icon-sparkles" strokeWidth={2.5} />
-                <span>SUMMER SALE — BEST PRICE GUARANTEED!</span>
-              </div>
+            <div className="pb-trust">
+              <div><Truck size={22} /> Pan-India delivery</div>
+              <div><RotateCcw size={22} /> 7-day returns</div>
+              <div><ShieldCheck size={22} /> Secure payments</div>
+              <div><PackageCheck size={22} /> Quality checked</div>
             </div>
-
-            <div className="units-sold-ticker" style={{ overflow: "hidden", display: "inline-flex", alignItems: "center", width: "100%", minHeight: "42px" }}>
-              <div className="pulsing-dot" style={{ flexShrink: 0 }}></div>
-              <div style={{ flex: 1, overflow: "hidden", position: "relative", minHeight: "20px", display: "flex", alignItems: "center" }}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={tickerIndex}
-                    initial={{ y: 15, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -15, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                  >
-                    {tickerMessages[tickerIndex].content}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-
-            {/* Quantity Selector & Purchase Actions */}
-            <div className="purchase-section" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="quantity-selector-v2" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="quantity-label" style={{ fontSize: '14px', fontWeight: '700', color: 'var(--brand-color)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Quantity:</span>
-                <div className="quantity-controls" style={{ display: 'flex', alignItems: 'center', background: 'var(--panel)', border: '1px solid rgba(211, 201, 189, 0.5)', borderRadius: '999px', padding: '4px' }}>
-                  <button 
-                    type="button"
-                    onClick={() => adjustQuantity(-1)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', border: 'none', background: 'none', color: 'var(--ink)', cursor: 'pointer', borderRadius: '50%' }}
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus size={14} strokeWidth={2.5} />
-                  </button>
-                  <span className="quantity-number" style={{ minWidth: '24px', textAlign: 'center', fontSize: '14px', fontWeight: '700', color: 'var(--ink)' }}>{quantity}</span>
-                  <button 
-                    type="button"
-                    onClick={() => adjustQuantity(1)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', border: 'none', background: 'none', color: 'var(--ink)', cursor: 'pointer', borderRadius: '50%' }}
-                    aria-label="Increase quantity"
-                  >
-                    <Plus size={14} strokeWidth={2.5} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="purchase-actions-v2 product-buy-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button 
-                  className="block-btn"
-                  type="button"
-                  onClick={() => handleAddToCart()}
-                  disabled={product.inStock === false}
-                >
-                  <ShoppingBag size={18} strokeWidth={2.2} />
-                  <span>Add to cart</span>
-                </button>
-
-                <button 
-                  className={`buy-now-btn ${isBuyingNow ? 'loading' : ''}`} 
-                  type="button"
-                  onClick={() => handleBuyNow()}
-                  disabled={isBuyingNow || product.inStock === false}
-                >
-                  <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
-                  {isBuyingNow ? (
-                    <div className="buy-now-spinner" />
-                  ) : (
-                    <ChevronRight size={20} />
-                  )}
-                </button>
-
-                {product.inStock === false && (
-                  <div className="out-of-stock-notice-banner">
-                    ⚠️ Out of Stock — Currently Unavailable
-                  </div>
-                )}
-              </div>
-            </div>
-
-
-            <div className="trust-features-grid">
-              <div className="trust-feature secure-pay">
-                <div className="tf-icon"><ShieldCheck size={28} strokeWidth={1.6} /></div>
-                <span>100% Secure<br/>Payments</span>
-              </div>
-              <div className="trust-feature priority-ship">
-                <div className="tf-icon"><Tag size={28} strokeWidth={1.6} /></div>
-                <span>Priority<br/>Dispatch</span>
-              </div>
-              <div className="trust-feature returns-policy">
-                <div className="tf-icon"><Undo2 size={28} strokeWidth={1.6} /></div>
-                <span>7-Day Worry<br/>Free Returns</span>
-              </div>
-            </div>
-
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
-            <div className="details-accordion-v2">
-              <div className="acc-item">
-                <button className="acc-trigger" onClick={() => setActiveTab(activeTab === 'specs' ? '' : 'specs')}>
-                  Technical Specifications
-                  <Plus size={18} className={activeTab === 'specs' ? 'rotate' : ''} />
-                </button>
-                <AnimatePresence>
-                  {activeTab === 'specs' && (
-                    <motion.div 
-                      className="acc-body"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                    >
-                      <div className="specs-table">
-                        {Object.entries(product.specifications).map(([k, v], i) => (
-                          <div key={i} className="spec-row-v2">
-                            <span className="spec-key">{k}</span>
-                            <span className="spec-val">{v}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-            )}
-          </motion.div>
-      </div>
-    </div>
-
-    {/* Product Video Section */}
-    {(() => {
-      const productVideo = peopleChoiceVideos.find(v => v.slug === slug);
-      if (!productVideo || !productVideo.video) return null;
-
-      return (
-        <section className="product-video-section">
-          <div className="section-heading centered">
-            <p className="eyebrow">Product in action</p>
-            <h2>See it for yourself</h2>
           </div>
-          <div className="product-video-container">
-            <video 
-              className="product-detail-video" 
-              autoPlay 
-              muted={!videoSoundOn} 
-              loop 
-              playsInline 
-              preload="auto"
-            >
-              <source src={productVideo.video} type="video/mp4" />
-            </video>
-            <button
-              className={`product-video-sound ${videoSoundOn ? "is-active" : ""}`}
-              type="button"
-              onClick={() => setVideoSoundOn(!videoSoundOn)}
-              title={videoSoundOn ? "Mute video" : "Unmute video"}
-            >
-              {videoSoundOn ? <Volume2 size={24} /> : <VolumeX size={24} />}
+
+          <div className="pb-panel" style={{ marginTop: 16, padding: "4px 20px" }}>
+            {product.description || highlights.length ? (
+              <details className="pb-acc" open>
+                <summary>About this item <ChevronDown size={18} /></summary>
+                <div className="pb-acc-body">
+                  {product.description ? <p style={{ marginTop: 0 }}>{product.description}</p> : null}
+                  {highlights.length ? (
+                    <ul className="pb-highlights">
+                      {highlights.map((h) => (
+                        <li key={h}><CheckCircle2 size={17} /> {h}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              </details>
+            ) : null}
+            {specs.length ? (
+              <details className="pb-acc">
+                <summary>Specifications <ChevronDown size={18} /></summary>
+                <div className="pb-acc-body">
+                  <dl className="pb-specs">
+                    {specs.map(([key, value]) => (
+                      <div key={key}><dt>{key}</dt><dd>{value}</dd></div>
+                    ))}
+                  </dl>
+                </div>
+              </details>
+            ) : null}
+            <details className="pb-acc">
+              <summary>Delivery & returns <ChevronDown size={18} /></summary>
+              <div className="pb-acc-body">
+                <ul className="pb-highlights">
+                  <li><Truck size={17} /> Delivered within 5–7 business days after dispatch. Free shipping above ₹500, otherwise ₹70.</li>
+                  <li><RotateCcw size={17} /> Return eligible items within 7 days of delivery. <Link href="/refund-return-policy" style={{ color: "var(--pb-sea)", fontWeight: 700 }}>Policy</Link></li>
+                  <li><Tag size={17} /> Cash on delivery available. Prepaid orders get an extra 10% off.</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+        </motion.div>
+      </div>
+
+      {video ? (
+        <section className="pb-section">
+          <div className="pb-section-head">
+            <div>
+              <div className="pb-eyebrow">Product in action</div>
+              <h2>See it for yourself</h2>
+            </div>
+          </div>
+          <div className="pb-video">
+            <video src={video.video} poster={video.image} autoPlay muted={!videoSoundOn} loop playsInline preload="metadata" />
+            <button className="pb-reel-sound" type="button" onClick={() => setVideoSoundOn((v) => !v)} aria-label={videoSoundOn ? "Mute video" : "Unmute video"}>
+              {videoSoundOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
-            <div className="video-overlay-gradient" />
           </div>
         </section>
-      );
-    })()}
+      ) : null}
 
-    <motion.section
-      className="curated-companions curated-companions-premium"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1 }}
-      >
-        <div className="curated-shell">
-          <div className="curated-header">
-            <div className="section-heading">
-              <p className="eyebrow">DISCOVER MORE</p>
-              <h2>Curated Companions</h2>
+      {reviews.length ? (
+        <section className="pb-section" id="reviews">
+          <div className="pb-section-head">
+            <div>
+              <h2>Customer reviews</h2>
             </div>
           </div>
-          <div className="companions-grid curated-grid">
-            {relatedProducts.map((p, i) => {
-              const pCartQty = cartItems.find((item) => item.id === getProductId(p))?.quantity || 0;
-              return (
-                <motion.article
-                  className="curated-product-card"
-                  key={p.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                >
-                  <Link className="curated-media" href={`/product/${p.slug}`} aria-label={`View ${p.name}`}>
-                    <img src={p.image} alt={p.name} loading="lazy" fetchPriority="low" decoding="async" />
-                    <span className="curated-deal">{getCompanionDealLabel(p)}</span>
-                  </Link>
-                  <div className="curated-product-body">
-                    <Link className="curated-title-link" href={`/product/${p.slug}`}>
-                      <h3>{p.name}</h3>
-                    </Link>
-                    <div className="curated-price-row">
-                      <p className="price">
-                        {formatRupeePrice(p.price)}
-                        {p.oldPrice ? <span>{formatRupeePrice(p.oldPrice)}</span> : null}
-                      </p>
-                    </div>
-                    {p.inStock === false ? (
-                      <button className="quick-add disabled" disabled>Out of Stock</button>
-                    ) : pCartQty > 0 ? (
-                      <div className="product-quantity-selector curated-quantity-selector">
-                        <button 
-                          type="button" 
-                          onClick={() => updateCartQuantity(getProductId(p), pCartQty - 1)}
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span>{pCartQty}</span>
-                        <button 
-                          type="button" 
-                          onClick={() => updateCartQuantity(getProductId(p), pCartQty + 1)}
-                          aria-label="Increase quantity"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        className="quick-add curated-quick-add"
-                        type="button"
-                        onClick={() => addToCart(p)}
-                      >
-                        Add to Cart
-                      </button>
-                    )}
-                  </div>
-                </motion.article>
-              );
-            })}
+          {ratingValue ? (
+            <div className="pb-rating-summary">
+              <span className="pb-rating-big">{ratingValue}</span>
+              <span>
+                <Stars value={ratingValue} size={18} />
+                <div style={{ fontSize: 13.5, color: "var(--pb-muted)", marginTop: 4 }}>{ratingCount ? `Based on ${ratingCount} ratings` : null}</div>
+              </span>
+            </div>
+          ) : null}
+          <div className="pb-reviews">
+            {reviews.map((review) => (
+              <article key={review.id} className="pb-review">
+                {review.rating ? <Stars value={review.rating} /> : null}
+                <p>&ldquo;{review.text}&rdquo;</p>
+                <div className="pb-review-who">
+                  <span className="pb-avatar">{getInitials(review.name)}</span>
+                  <span>
+                    <strong>{review.name}</strong>
+                    {review.verified ? <small><BadgeCheck size={13} /> Verified buyer</small> : null}
+                  </span>
+                </div>
+              </article>
+            ))}
           </div>
-        </div>
-      </motion.section>
+        </section>
+      ) : null}
 
+      <ProductRail title="You might also like" products={related} href="/shop" />
 
-    </motion.main>
+      <div className="pb-sticky-buy">
+        <button className="pb-btn pb-btn-outline" type="button" onClick={handleAddToCart} disabled={outOfStock}>
+          <ShoppingCart size={18} /> Add · {formatINR(lineTotal)}
+        </button>
+        <button className="pb-btn pb-btn-primary" type="button" onClick={() => handleBuyNow()} disabled={outOfStock || isBuyingNow}>
+          {isBuyingNow ? "Redirecting..." : "Buy now"} <ChevronRight size={18} />
+        </button>
+      </div>
+    </main>
   );
 }
 

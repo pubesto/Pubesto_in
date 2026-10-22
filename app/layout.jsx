@@ -1,18 +1,14 @@
 import "./globals.css";
 import Script from "next/script";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import "./ui.css";
+import { Suspense } from "react";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
   variable: "--font-body",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-display",
 });
 
 const metaPixelIds = ["1229284689266211"];
@@ -31,7 +27,7 @@ fbq('track', 'PageView');
 `;
 
 export const metadata = {
-  title: "Pubesto | Artisanal Ecommerce",
+  title: "Pubesto | Cooling gadgets, bottles & everyday essentials",
   description: "Pubesto home decor, lunch storage, water bottles, and daily essentials.",
   icons: {
     icon: "/favicon.png",
@@ -47,11 +43,12 @@ import { Providers } from "./providers";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Drawers from "../components/Drawers";
+import CartDrawer from "../components/CartDrawer";
 import MetaPixelRouteTracker from "../components/MetaPixelRouteTracker";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en" className={jakarta.variable} style={{ "--font-display": "var(--font-body)" }} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Script
           strategy="afterInteractive"
@@ -104,8 +101,11 @@ export default function RootLayout({ children }) {
         </noscript>
         <MetaPixelRouteTracker />
         <Providers>
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
           <Drawers />
+          <CartDrawer />
           {children}
           <Footer />
         </Providers>

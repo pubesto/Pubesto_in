@@ -74,7 +74,7 @@ export default function AboutPage() {
                 </div>
                 <div className="stat-item">
                   <strong style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                    <ShieldCheck size={36} style={{ color: "#3f6469" }} strokeWidth={1.5} /> 100%
+                    <ShieldCheck size={36} style={{ color: "#004a69" }} strokeWidth={1.5} /> 100%
                   </strong>
                   <span>Strict Quality</span>
                 </div>
@@ -238,7 +238,7 @@ export default function AboutPage() {
 
         {/* Section 6: Business Ownership */}
         <section className="about-ownership" style={{ padding: "100px 24px", textAlign: "center", backgroundColor: "#f6f4f2" }}>
-          <h2 style={{ fontSize: "32px", color: "#3f6469", marginBottom: "16px", fontFamily: "var(--font-display)", fontStyle: "italic" }}>Business Ownership</h2>
+          <h2 style={{ fontSize: "32px", color: "#004a69", marginBottom: "16px", fontFamily: "var(--font-display)", fontStyle: "italic" }}>Business Ownership</h2>
           <p style={{ color: "#666", fontSize: "18px" }}>Pubesto is owned and operated by <strong>GO HYPE MEDIA</strong>.</p>
         </section>
 
@@ -269,7 +269,7 @@ export default function AboutPage() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: #3f6469;
+          background: #004a69;
           color: white;
           padding: 14px 28px;
           border-radius: 999px;
@@ -278,21 +278,21 @@ export default function AboutPage() {
           text-decoration: none;
           text-transform: uppercase;
           letter-spacing: 1px;
-          box-shadow: 0 10px 25px rgba(63, 100, 105, 0.15);
+          box-shadow: 0 10px 25px rgba(0, 74, 105, 0.15);
           transition: all 0.3s ease;
         }
 
         .btn-about-cta:hover {
           background: #2a4347;
           transform: translateY(-2px);
-          box-shadow: 0 15px 30px rgba(63, 100, 105, 0.25);
+          box-shadow: 0 15px 30px rgba(0, 74, 105, 0.25);
         }
 
         .eyebrow-accent {
           text-transform: uppercase;
           letter-spacing: 3px;
           font-weight: 700;
-          color: #3f6469;
+          color: #004a69;
           font-size: 14px;
           margin-bottom: 20px;
         }
@@ -301,7 +301,7 @@ export default function AboutPage() {
           font-size: 80px;
           line-height: 0.9;
           margin-bottom: 30px;
-          color: #3f6469;
+          color: #004a69;
         }
 
         .hero-text-content h1 span {
@@ -329,7 +329,7 @@ export default function AboutPage() {
 
         .stat-item strong {
           font-size: 32px;
-          color: #3f6469;
+          color: #004a69;
         }
 
         .stat-item span {
@@ -364,7 +364,7 @@ export default function AboutPage() {
           position: absolute;
           top: 10px;
           right: 10px;
-          background: #3f6469;
+          background: #004a69;
           color: white;
           padding: 8px 16px;
           border-radius: 30px;
@@ -375,7 +375,7 @@ export default function AboutPage() {
 
         .about-trust {
           background: #f5f5f5; /* Clean soft off-white color */
-          color: #3f6469;
+          color: #004a69;
           padding: 100px 24px;
         }
 
@@ -392,13 +392,13 @@ export default function AboutPage() {
         .trust-header h2 {
           font-size: 56px;
           margin-bottom: 20px;
-          color: #3f6469;
+          color: #004a69;
         }
 
         .line-accent {
           width: 80px;
           height: 3px;
-          background: #3f6469;
+          background: #004a69;
           margin: 0 auto;
         }
 
@@ -416,14 +416,14 @@ export default function AboutPage() {
           width: 48px;
           height: 48px;
           margin-bottom: 24px;
-          color: #3f6469;
+          color: #004a69;
           opacity: 0.95;
         }
 
         .pillar-item h3 {
           font-size: 22px;
           margin-bottom: 15px;
-          color: #3f6469;
+          color: #004a69;
         }
 
         .pillar-item p {
@@ -433,7 +433,7 @@ export default function AboutPage() {
 
         .about-process-v2 {
           padding: 100px 24px;
-          background: #3f6469; /* Brand Teal slate color from 2nd image */
+          background: #004a69; /* Brand Teal slate color from 2nd image */
           color: #ffffff;
         }
 
@@ -461,7 +461,7 @@ export default function AboutPage() {
           top: 40px;
           left: -40px;
           background: #ffffff;
-          color: #3f6469;
+          color: #004a69;
           padding: 30px;
           border-radius: 24px;
           display: flex;
@@ -471,7 +471,7 @@ export default function AboutPage() {
 
         .experience-box strong {
           font-size: 36px;
-          color: #3f6469;
+          color: #004a69;
         }
 
         .process-content h2 {
@@ -516,7 +516,7 @@ export default function AboutPage() {
 
         .why-header h2 {
           font-size: 40px;
-          color: #3f6469;
+          color: #004a69;
           margin-bottom: 10px;
         }
 
@@ -543,7 +543,7 @@ export default function AboutPage() {
           gap: 10px;
           font-size: 14px;
           font-weight: 600;
-          color: #3f6469;
+          color: #004a69;
           box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 

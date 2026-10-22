@@ -98,7 +98,7 @@ const ORDER_STATUS_STYLE = {
   processing: { color: "#b45309", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.22)" },
   confirmed:  { color: "#059669", bg: "rgba(5,150,105,0.08)", border: "rgba(5,150,105,0.2)" },
   shipped:    { color: "#2563eb", bg: "rgba(37,99,235,0.08)", border: "rgba(37,99,235,0.2)" },
-  delivered:  { color: "#1b624b", bg: "rgba(27,98,75,0.08)", border: "rgba(27,98,75,0.2)" },
+  delivered:  { color: "#006994", bg: "rgba(0, 105, 148,0.08)", border: "rgba(0, 105, 148,0.2)" },
   cancelled:  { color: "#dc2626", bg: "rgba(220,38,38,0.06)", border: "rgba(220,38,38,0.15)" },
 };
 
@@ -168,7 +168,7 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
       {/* Summary Card */}
       <div className="returns-card" style={{ overflow: "hidden" }}>
         {/* Top accent */}
-        <div style={{ height: "4px", background: "linear-gradient(90deg, #1b624b, #3a9d78)", margin: "-28px -28px 24px", borderRadius: "0" }} />
+        <div style={{ height: "4px", background: "linear-gradient(90deg, #006994, #3a9d78)", margin: "-28px -28px 24px", borderRadius: "0" }} />
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", marginBottom: "20px" }}>
           <div>
@@ -176,7 +176,7 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
               Order Tracking
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <h2 style={{ fontFamily: "monospace", fontSize: "22px", fontWeight: 800, color: "var(--brand-color, #1b624b)", margin: 0, letterSpacing: "0.04em" }}>
+              <h2 style={{ fontFamily: "monospace", fontSize: "22px", fontWeight: 800, color: "var(--brand-color, #006994)", margin: 0, letterSpacing: "0.04em" }}>
                 {order.id}
               </h2>
               <button
@@ -210,7 +210,7 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
         {order.items?.length > 0 && (
           <div style={{ marginBottom: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
             {order.items.map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", background: "rgba(27,98,75,0.025)", borderRadius: "10px", border: "1px solid rgba(211,201,189,0.3)" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", background: "rgba(0, 105, 148,0.025)", borderRadius: "10px", border: "1px solid rgba(211,201,189,0.3)" }}>
                 <img
                   src={item.image}
                   alt={item.name}
@@ -244,7 +244,7 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
           </div>
           <div className="returns-info-item">
             <p className="returns-info-label">Payment</p>
-            <p className="returns-info-value" style={{ color: "#1b624b" }}>✅ Paid</p>
+            <p className="returns-info-value" style={{ color: "#006994" }}>✅ Paid</p>
           </div>
           <div className="returns-info-item">
             <p className="returns-info-label">Items</p>
@@ -270,20 +270,20 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
                 <div key={step.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
                   {/* connector */}
                   {idx < allSteps.length - 1 && (
-                    <div style={{ position: "absolute", top: "14px", left: "50%", width: "100%", height: "2px", background: isDone ? "#1b624b" : "rgba(211,201,189,0.5)", zIndex: 0 }} />
+                    <div style={{ position: "absolute", top: "14px", left: "50%", width: "100%", height: "2px", background: isDone ? "#006994" : "rgba(211,201,189,0.5)", zIndex: 0 }} />
                   )}
                   <div style={{
                     width: "28px", height: "28px", borderRadius: "50%", zIndex: 1,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    background: isDone ? "#1b624b" : isActive ? "#fff" : "#f0ede8",
-                    border: `2px solid ${isDone || isActive ? "#1b624b" : "rgba(211,201,189,0.6)"}`,
-                    color: isDone ? "#fff" : isActive ? "#1b624b" : "var(--muted)",
-                    boxShadow: isActive ? "0 0 0 4px rgba(27,98,75,0.12)" : "none",
+                    background: isDone ? "#006994" : isActive ? "#fff" : "#f0ede8",
+                    border: `2px solid ${isDone || isActive ? "#006994" : "rgba(211,201,189,0.6)"}`,
+                    color: isDone ? "#fff" : isActive ? "#006994" : "var(--muted)",
+                    boxShadow: isActive ? "0 0 0 4px rgba(0, 105, 148,0.12)" : "none",
                     transition: "all 0.2s ease",
                   }}>
                     <Icon size={13} strokeWidth={2.5} />
                   </div>
-                  <span style={{ fontSize: "10px", fontWeight: 700, marginTop: "6px", textAlign: "center", color: isDone || isActive ? "#1b624b" : "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, marginTop: "6px", textAlign: "center", color: isDone || isActive ? "#006994" : "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
                     {step.label}
                   </span>
                 </div>
@@ -301,8 +301,8 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
             return (
               <div key={entry.id} className="returns-timeline-item completed active">
                 <div className="returns-timeline-dot" style={{
-                  background: isCancelEntry ? "#dc2626" : "#1b624b",
-                  borderColor: isCancelEntry ? "#dc2626" : "#1b624b",
+                  background: isCancelEntry ? "#dc2626" : "#006994",
+                  borderColor: isCancelEntry ? "#dc2626" : "#006994",
                   color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
@@ -349,10 +349,10 @@ function OrderTrackView({ order, onReset, copiedId, onCopy, onRefresh, refreshin
       )}
 
       {order.status === "delivered" && (
-        <div style={{ padding: "16px 20px", background: "rgba(27,98,75,0.05)", border: "1px solid rgba(27,98,75,0.18)", borderRadius: "14px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
-          <CheckCircle2 size={20} style={{ color: "#1b624b", flexShrink: 0, marginTop: "2px" }} />
+        <div style={{ padding: "16px 20px", background: "rgba(0, 105, 148,0.05)", border: "1px solid rgba(0, 105, 148,0.18)", borderRadius: "14px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
+          <CheckCircle2 size={20} style={{ color: "#006994", flexShrink: 0, marginTop: "2px" }} />
           <div>
-            <p style={{ fontSize: "14px", fontWeight: 700, color: "#1b624b", margin: "0 0 4px" }}>Order delivered! 🎉</p>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: "#006994", margin: "0 0 4px" }}>Order delivered! 🎉</p>
             <p style={{ fontSize: "13px", color: "var(--muted)", margin: 0, lineHeight: 1.55 }}>
               Not satisfied? You can submit a return/exchange request within 7 days of delivery.
             </p>
@@ -445,7 +445,7 @@ function ReturnTrackView({ returnData, copiedId, onCopy, onRefresh, refreshing }
         </div>
 
         {returnData.adminNotes && (
-          <div style={{ background: "rgba(27,98,75,0.04)", border: "1px solid rgba(27,98,75,0.15)", borderRadius: "10px", padding: "14px 16px", marginTop: "16px" }}>
+          <div style={{ background: "rgba(0, 105, 148,0.04)", border: "1px solid rgba(0, 105, 148,0.15)", borderRadius: "10px", padding: "14px 16px", marginTop: "16px" }}>
             <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px" }}>Message from Pubesto</p>
             <p style={{ fontSize: "13.5px", color: "var(--ink)", margin: 0, lineHeight: 1.55 }}>{returnData.adminNotes}</p>
           </div>
@@ -717,7 +717,7 @@ function TrackContent() {
           padding: 5px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
           text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
         }
-        .track-type-pill.order { background: rgba(27,98,75,0.08); color: #1b624b; border: 1px solid rgba(27,98,75,0.2); }
+        .track-type-pill.order { background: rgba(0, 105, 148,0.08); color: #006994; border: 1px solid rgba(0, 105, 148,0.2); }
         .track-type-pill.return { background: rgba(37,99,235,0.08); color: #2563eb; border: 1px solid rgba(37,99,235,0.2); }
         .sidebar-item-btn {
           display: block; width: 100%; text-align: left; padding: 12px 14px;
@@ -725,8 +725,8 @@ function TrackContent() {
           background: #fff; cursor: pointer; transition: all 0.18s ease;
           margin-bottom: 8px;
         }
-        .sidebar-item-btn:hover { border-color: rgba(27,98,75,0.3); background: rgba(27,98,75,0.02); }
-        .sidebar-item-btn.active { border-color: #1b624b; background: rgba(27,98,75,0.04); }
+        .sidebar-item-btn:hover { border-color: rgba(0, 105, 148,0.3); background: rgba(0, 105, 148,0.02); }
+        .sidebar-item-btn.active { border-color: #006994; background: rgba(0, 105, 148,0.04); }
       `}</style>
 
       <div className="returns-container">
@@ -786,7 +786,7 @@ function TrackContent() {
                 {/* Format hints */}
                 <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "11.5px", color: "var(--muted)", display: "flex", alignItems: "center", gap: "4px" }}>
-                    <Package size={12} style={{ color: "#1b624b" }} /> Order: <strong>PUB-YYYY-NNNN</strong>
+                    <Package size={12} style={{ color: "#006994" }} /> Order: <strong>PUB-YYYY-NNNN</strong>
                   </span>
                   <span style={{ fontSize: "11.5px", color: "var(--muted)", display: "flex", alignItems: "center", gap: "4px" }}>
                     <RotateCcw size={12} style={{ color: "#2563eb" }} /> Return: <strong>RET-XXXXXX</strong>
@@ -881,7 +881,7 @@ function TrackContent() {
                       onClick={() => { setInputId(o.id); lookup(o.id); }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                        <span style={{ fontFamily: "monospace", fontSize: "13px", fontWeight: 800, color: isActive ? "#1b624b" : "var(--ink)" }}>{o.id}</span>
+                        <span style={{ fontFamily: "monospace", fontSize: "13px", fontWeight: 800, color: isActive ? "#006994" : "var(--ink)" }}>{o.id}</span>
                         <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "10px", background: styleCfg.bg, color: styleCfg.color, textTransform: "uppercase" }}>
                           {o.status}
                         </span>
@@ -949,8 +949,8 @@ function TrackContent() {
             </div>
 
             {/* Help */}
-            <div className="returns-sidebar-card" style={{ background: "rgba(27,98,75,0.03)", border: "1px solid rgba(27,98,75,0.1)" }}>
-              <h3 className="returns-sidebar-title" style={{ color: "#1b624b" }}>
+            <div className="returns-sidebar-card" style={{ background: "rgba(0, 105, 148,0.03)", border: "1px solid rgba(0, 105, 148,0.1)" }}>
+              <h3 className="returns-sidebar-title" style={{ color: "#006994" }}>
                 <Info size={18} /> Need Help?
               </h3>
               <p className="returns-sidebar-desc">Our support team is here for you.</p>

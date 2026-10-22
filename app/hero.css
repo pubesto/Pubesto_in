@@ -363,7 +363,7 @@
 .hero-indicator-dot {
   width: 40px;
   height: 4px;
-  background: rgba(63, 100, 105, 0.2);
+  background: rgba(0, 74, 105, 0.2);
   border-radius: 10px;
   overflow: hidden;
 }

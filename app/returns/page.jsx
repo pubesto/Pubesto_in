@@ -504,7 +504,7 @@ export default function ReturnsPage() {
                 id="ret-policy-agree"
                 checked={form.agreePolicy}
                 onChange={(e) => setField("agreePolicy", e.target.checked)}
-                style={{ marginTop: "3px", accentColor: "var(--brand-color, #1b624b)", flexShrink: 0 }}
+                style={{ marginTop: "3px", accentColor: "var(--brand-color, #006994)", flexShrink: 0 }}
               />
               <span style={{ fontSize: "13px", color: "var(--ink, #1a1a1a)", lineHeight: 1.5 }}>
                 I confirm the item is unused, in original packaging, and I have read and agree to
@@ -512,7 +512,7 @@ export default function ReturnsPage() {
                 <Link
                   href="/refund-return-policy"
                   target="_blank"
-                  style={{ color: "var(--brand-color, #1b624b)", fontWeight: 600 }}
+                  style={{ color: "var(--brand-color, #006994)", fontWeight: 600 }}
                 >
                   Refund & Return Policy
                 </Link>
@@ -617,7 +617,7 @@ export default function ReturnsPage() {
               Need help?{" "}
               <a
                 href="mailto:support@pubesto.com"
-                style={{ color: "var(--brand-color, #1b624b)", fontWeight: 600 }}
+                style={{ color: "var(--brand-color, #006994)", fontWeight: 600 }}
               >
                 support@pubesto.com
               </a>{" "}
