@@ -65,8 +65,8 @@ export async function GET(request) {
 
   try {
     let profile;
-    const isLocalhost = requestUrl.hostname === "localhost" || requestUrl.hostname === "127.0.0.1";
-    const isDev = process.env.NODE_ENV !== "production" || isLocalhost;
+    // Mock Google login is for local development only. Never trust the Host header for this.
+    const isDev = process.env.NODE_ENV !== "production";
 
     if (code === "mock_code" && isDev) {
       profile = {

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Lock, Mail, UserRound, Eye, EyeOff, Phone } from "lucide-react";
 import GoogleAuthButton from "../../../components/GoogleAuthButton";
 import { useStore } from "../../../components/StoreContext";
+import { getSafeRedirectPath } from "../../../lib/utils";
 
 const EMPTY_LOGIN = { email: "", password: "" };
 const EMPTY_SIGNUP = { firstName: "", lastName: "", email: "", phone: "", password: "" };
@@ -17,7 +18,7 @@ function getSafeMode(value) {
 }
 
 function getSafeRedirect(value) {
-  return value?.startsWith("/") && !value.startsWith("//") ? value : "/account";
+  return getSafeRedirectPath(value, "/account");
 }
 
 export default function AccountLoginPage() {

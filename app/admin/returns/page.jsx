@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { RefreshCw, X, CheckCircle, XCircle, Eye, Trash2 } from "lucide-react";
+import { verifyAdminPin } from "../../../lib/verify-admin-pin";
 
-const ADMIN_PIN = "pubesto2024"; // matches process.env.ADMIN_PIN fallback
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Returns" },
@@ -71,9 +71,9 @@ function AdminGate({ onUnlock }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (pin === ADMIN_PIN) {
+    if (await verifyAdminPin(pin)) {
       sessionStorage.setItem("pubesto_admin_pin", pin);
       onUnlock(pin);
     } else {
@@ -482,9 +482,10 @@ export default function AdminReturnsPage() {
   // Check session storage for persisted pin
   useEffect(() => {
     const savedPin = sessionStorage.getItem("pubesto_admin_pin");
-    if (savedPin === ADMIN_PIN) {
-      setPin(savedPin);
-    }
+    verifyAdminPin(savedPin).then((ok) => {
+      if (ok) setPin(savedPin);
+      else sessionStorage.removeItem("pubesto_admin_pin");
+    });
   }, []);
 
   const fetchReturns = useCallback(

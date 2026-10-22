@@ -13,3 +13,11 @@ pnpm-debug.log*
 dev-server.log
 dev-server.err
 scratch/
+
+# Runtime data with customer details: never commit
+data/customers.json
+data/order-cancellations.json
+
+# Local browser profiles and logs (may contain cookies / saved logins)
+.tmp-chrome-profile/
+*.log

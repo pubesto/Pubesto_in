@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminRequest } from "../../../lib/admin-auth";
 
 // In-memory store — persists for server process lifetime.
 // In production, swap with Firestore / Supabase / MongoDB.
@@ -17,9 +18,7 @@ export async function GET(request) {
     const status = searchParams.get("status");
     const id = searchParams.get("id");
 
-    // Admin PIN check for full list
-    const adminPin = request.headers.get("x-admin-pin");
-    const validPin = process.env.ADMIN_PIN || "pubesto2024";
+    const isAdmin = isAdminRequest(request);
 
     if (id) {
       // Public: lookup by return ID (for customer tracking)
@@ -27,17 +26,16 @@ export async function GET(request) {
       if (!found) {
         return NextResponse.json({ error: "Return request not found." }, { status: 404 });
       }
-      // Return safe fields only (no internal admin notes if not admin)
-      const isAdmin = adminPin === validPin;
+      // Public lookups get status/timeline only: no contact details or internal notes.
       if (!isAdmin) {
-        const { adminInternalNotes, ...safe } = found;
+        const { adminInternalNotes, customerEmail, customerName, customerPhone, ...safe } = found;
         return NextResponse.json(safe);
       }
       return NextResponse.json(found);
     }
 
     // Admin-only: full list
-    if (adminPin !== validPin) {
+    if (!isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

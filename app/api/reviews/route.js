@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminRequest } from "../../../lib/admin-auth";
 import {
   filterReviews,
   makeReview,
@@ -12,11 +13,6 @@ const REVIEW_TEXT_MIN_LENGTH = 20;
 const REVIEW_TEXT_MAX_LENGTH = 500;
 const REVIEW_NAME_MAX_LENGTH = 50;
 
-function isAdminRequest(request) {
-  const adminPin = request.headers.get("x-admin-pin");
-  const validPin = process.env.ADMIN_PIN || "pubesto2024";
-  return adminPin === validPin;
-}
 
 function validateReviewPayload(body) {
   const customerName = String(body.customerName || "").trim();
@@ -78,8 +74,25 @@ export async function POST(request) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
+    // Admins (moderation page) control every field. Public submissions only supply the
+    // review itself and wait for approval: they can't self-publish, pin themselves to
+    // the homepage, reorder, or attach an image URL.
+    const input = isAdminRequest(request)
+      ? body
+      : {
+          customerName: body.customerName,
+          text: body.text,
+          rating: body.rating,
+          productSlug: body.productSlug,
+          productName: body.productName,
+          isPublished: false,
+          showOnHomepage: false,
+          sortOrder: 100,
+          customerImage: "",
+        };
+
     const reviews = await readReviews();
-    const review = makeReview(body);
+    const review = makeReview(input);
     const savedReviews = await writeReviews([...reviews, review]);
     const productScopedSummary = summarizeReviews(
       filterReviews(savedReviews, { productSlug: review.productSlug })

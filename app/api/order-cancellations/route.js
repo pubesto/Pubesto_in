@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminRequest } from "../../../lib/admin-auth";
 import {
   findDuplicateCancellation,
   makeOrderCancellation,
@@ -10,11 +11,6 @@ import { getShopifyOrderByName, cancelShopifyOrder } from "../../../lib/shopify-
 
 export const dynamic = "force-dynamic";
 
-function isAdminRequest(request) {
-  const adminPin = request.headers.get("x-admin-pin");
-  const validPin = process.env.ADMIN_PIN || "pubesto2024";
-  return adminPin === validPin;
-}
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());

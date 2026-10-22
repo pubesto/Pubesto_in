@@ -8,6 +8,7 @@ import {
   getShopifyVariantIdByHandle,
   getShopifyVariantIdForColor,
 } from "../lib/shopify";
+import { trackAddToCart, trackInitiateCheckout, trackPurchase } from "../lib/meta-pixel";
 
 const StoreContext = createContext();
 const PENDING_RAZORPAY_ORDER_KEY = "pubesto_pending_razorpay_order";
@@ -267,7 +268,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     const year = new Date().getFullYear();
     const rand = Math.floor(1000 + Math.random() * 9000);
     const subtotal = orderItems.reduce((sum, item) => sum + item.priceNumber * item.quantity, 0);
-    const shipping = subtotal >= 999 ? 0 : 99;
+    const shipping = subtotal >= 500 ? 0 : 70;
     const newOrder = {
       id: `PUB-${year}-${rand}`,
       date: new Date().toISOString(),
@@ -285,7 +286,18 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   }
 
   function completeRazorpayPayment(cartSnapshot, paymentId, options = {}) {
-    const { redirectHome = true } = options;
+    const { redirectHome = true, amount } = options;
+
+    // Fire Purchase once per payment, even if this runs again after a redirect.
+    try {
+      const firedKey = `pubesto_pixel_purchase_${paymentId}`;
+      if (paymentId && !sessionStorage.getItem(firedKey)) {
+        sessionStorage.setItem(firedKey, "1");
+        trackPurchase(cartSnapshot, amount);
+      }
+    } catch {
+      /* storage unavailable */
+    }
 
     try {
       persistRazorpayOrder(cartSnapshot, paymentId);
@@ -320,7 +332,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     completeRazorpayPayment(
       pendingOrder?.items || [],
       params.get("razorpay_payment_id") || "",
-      { redirectHome: true }
+      { redirectHome: true, amount: pendingOrder?.amount }
     );
 
     const cleanUrl = `${window.location.pathname}${window.location.hash || ""}` || "/";
@@ -557,6 +569,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     const shouldOpenCart = options.openCart !== false;
 
     const addQuantity = options.quantity || 1;
+    trackAddToCart(product, addQuantity);
     const selectedColor = options.color || product.selectedColor || "";
     const selectedColors = options.selectedColors || product.selectedColors || null;
     const resolvedProduct = await resolveShopifyCartProduct(product);
@@ -699,6 +712,12 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     if (activeItems.length === 0) return;
 
+    {
+      const discount = currentMethod === "prepaid" ? Math.round(activeAmount * 0.10) : 0;
+      const shipping = activeAmount >= 500 ? 0 : 70;
+      trackInitiateCheckout(activeItems, Math.max(0, activeAmount - discount + shipping));
+    }
+
     const refreshedUser = await refreshAuthSession();
     const checkoutUser = refreshedUser || user;
 
@@ -736,6 +755,12 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       });
 
       const data = await res.json();
+      // 400 = a cart problem the shopper must fix (e.g. an item no longer sold). Falling
+      // through to the permalink would send them to a broken or empty Shopify cart.
+      if (res.status === 400 && data?.error) {
+        alert(data.error);
+        return;
+      }
       const redirectUrl = data?.checkoutUrl || data?.invoiceUrl;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -795,7 +820,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       }
 
       const rzpOptions = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_RwcLAPO7q0AESo",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "Pubesto",
@@ -804,12 +829,13 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         callback_url: getRazorpayCallbackUrl(),
         redirect: true,
         handler: function (response) {
-          completeRazorpayPayment(cartSnapshot, response.razorpay_payment_id);
+          completeRazorpayPayment(cartSnapshot, response.razorpay_payment_id, { amount: finalAmount });
         },
         prefill: {
           name: checkoutUser?.name || "Customer",
-          email: checkoutUser?.email === "amitsharma500677@gmail.com" ? "pubesto.in@gmail.com" : (checkoutUser?.email || "pubesto.in@gmail.com"),
-          contact: checkoutUser?.phone || "9999999999",
+          // Only prefill real customer details; Razorpay asks for anything missing.
+          email: checkoutUser?.email || undefined,
+          contact: checkoutUser?.phone || undefined,
         },
         theme: { color: "#006994" },
       };

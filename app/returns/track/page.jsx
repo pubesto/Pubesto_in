@@ -582,6 +582,11 @@ function TrackContent() {
         // Try to fetch order details from Shopify dynamically
         try {
           const res = await fetch(`/api/orders/${encodeURIComponent(trimmed)}`);
+          if (res.status === 401) {
+            setError("Please log in with the email you ordered with to track this order.");
+            setLoading(false);
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             if (data.order) {

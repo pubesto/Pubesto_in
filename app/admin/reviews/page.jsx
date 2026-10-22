@@ -14,8 +14,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { verifyAdminPin } from "../../../lib/verify-admin-pin";
 
-const ADMIN_PIN = "pubesto2024";
 
 const EMPTY_FORM = {
   customerName: "",
@@ -56,9 +56,9 @@ function AdminGate({ onUnlock }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    if (pin === ADMIN_PIN) {
+    if (await verifyAdminPin(pin)) {
       sessionStorage.setItem("pubesto_admin_pin", pin);
       onUnlock(pin);
       return;
@@ -157,10 +157,14 @@ export default function ReviewsAdminPage() {
 
   useEffect(() => {
     const savedPin = sessionStorage.getItem("pubesto_admin_pin");
-    if (savedPin === ADMIN_PIN) {
-      setPin(savedPin);
-      loadReviews(savedPin);
-    }
+    verifyAdminPin(savedPin).then((ok) => {
+      if (ok) {
+        setPin(savedPin);
+        loadReviews(savedPin);
+      } else {
+        sessionStorage.removeItem("pubesto_admin_pin");
+      }
+    });
   }, [loadReviews]);
 
   useEffect(() => {

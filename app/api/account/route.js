@@ -75,8 +75,8 @@ export async function PATCH(request) {
       return NextResponse.json({ success: true, user: result.user });
     }
     
-    if (account.session.provider === "google" && account.session.id) {
-      const user = await updateShopifyCustomerAdmin(account.session.id, {
+    if (account.session.provider === "google" && account.session.sub) {
+      const user = await updateShopifyCustomerAdmin(account.session.sub, {
         name: body.name,
         phone: body.phone,
       });

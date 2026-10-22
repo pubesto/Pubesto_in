@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminRequest } from "../../../../lib/admin-auth";
 import {
   readReviews,
   summarizeReviews,
@@ -8,11 +9,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function isAdminRequest(request) {
-  const adminPin = request.headers.get("x-admin-pin");
-  const validPin = process.env.ADMIN_PIN || "pubesto2024";
-  return adminPin === validPin;
-}
 
 function validateReviewPayload(body) {
   if (body.customerName !== undefined && !String(body.customerName || "").trim()) {

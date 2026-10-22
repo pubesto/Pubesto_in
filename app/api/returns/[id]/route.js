@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminRequest } from "../../../../lib/admin-auth";
 
 if (!global._returnsStore) {
   global._returnsStore = [];
@@ -31,10 +32,8 @@ const STATUS_NOTES = {
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
-    const adminPin = request.headers.get("x-admin-pin");
-    const validPin = process.env.ADMIN_PIN || "pubesto2024";
-    const isAdmin = adminPin === validPin;
+    const { id } = await params;
+    const isAdmin = isAdminRequest(request);
 
     const found = global._returnsStore.find((r) => r.id === id);
     if (!found) {
@@ -42,7 +41,7 @@ export async function GET(request, { params }) {
     }
 
     if (!isAdmin) {
-      const { adminInternalNotes, ...safe } = found;
+      const { adminInternalNotes, customerEmail, customerName, customerPhone, ...safe } = found;
       return NextResponse.json(safe);
     }
 
@@ -55,11 +54,9 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
-    const { id } = params;
-    const adminPin = request.headers.get("x-admin-pin");
-    const validPin = process.env.ADMIN_PIN || "pubesto2024";
+    const { id } = await params;
 
-    if (adminPin !== validPin) {
+    if (!isAdminRequest(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -110,11 +107,9 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
-    const adminPin = request.headers.get("x-admin-pin");
-    const validPin = process.env.ADMIN_PIN || "pubesto2024";
+    const { id } = await params;
 
-    if (adminPin !== validPin) {
+    if (!isAdminRequest(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

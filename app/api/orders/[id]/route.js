@@ -1,17 +1,29 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../../lib/auth-session";
+import { getShopifyStoreDomain } from "../../../../lib/shopify-domains";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
-    const trimmedId = (id || "").trim();
+    const { id } = await params;
+    // Order names are like "#1001" or "PUB-2026-7215"; anything else could alter the search query.
+    const trimmedId = decodeURIComponent(id || "").trim();
 
-    if (!trimmedId) {
+    if (!trimmedId || !/^[#A-Za-z0-9-]{1,40}$/.test(trimmedId)) {
       return NextResponse.json({ error: "Order ID is required." }, { status: 400 });
     }
 
-    const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'jjiygt-gt.myshopify.com';
+    // Only the customer who placed the order may view it.
+    const cookieStore = await cookies();
+    const session = parseSessionToken(cookieStore.get(AUTH_COOKIE_NAME)?.value);
+    const sessionEmail = String(session?.email || "").trim().toLowerCase();
+    if (!sessionEmail) {
+      return NextResponse.json({ error: "Please log in to track your order." }, { status: 401 });
+    }
+
+    const domain = getShopifyStoreDomain();
     const adminToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
     if (!adminToken) {
@@ -25,6 +37,7 @@ export async function GET(request, { params }) {
             node {
               id
               name
+              email
               createdAt
               cancelledAt
               financialStatus
@@ -110,6 +123,10 @@ export async function GET(request, { params }) {
     }
 
     const node = edges[0].node;
+    if (String(node.email || "").trim().toLowerCase() !== sessionEmail) {
+      // Same response as a missing order, so order numbers can't be probed.
+      return NextResponse.json({ error: "Order not found on Shopify." }, { status: 404 });
+    }
     const subtotal = parseFloat(node.subtotalPriceSet?.shopMoney?.amount || 0);
     const shipping = parseFloat(node.totalShippingPriceSet?.shopMoney?.amount || 0);
     const total = parseFloat(node.totalPriceSet?.shopMoney?.amount || 0);

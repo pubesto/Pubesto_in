@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -26,6 +26,7 @@ import {
 import { useStore } from "../../../components/StoreContext";
 import ProductRail from "../../../components/ProductRail";
 import { peopleChoiceVideos } from "../../../lib/data";
+import { trackInitiateCheckout, trackViewContent } from "../../../lib/meta-pixel";
 import { formatINR, getDiscountPercent, getListableProducts, getOriginalPrice, getSalePrice } from "../../../lib/utils";
 
 const FREE_SHIPPING_THRESHOLD = 500;
@@ -128,6 +129,26 @@ function ProductPageContent() {
     setQuantity(1);
   }, [product?.slug]);
 
+  // Meta Pixel: one ViewContent per product URL. Keyed on the route slug because the
+  // product object (and its slug) changes when Shopify data replaces the local fallback.
+  // Waits for Shopify data (real price + handle) so ViewContent matches AddToCart; falls
+  // back to the local product after 3s if Shopify is slow or unavailable.
+  const viewTrackedForRef = useRef(null);
+  useEffect(() => {
+    if (!product || viewTrackedForRef.current === slug) return undefined;
+    const fire = () => {
+      if (viewTrackedForRef.current === slug) return;
+      viewTrackedForRef.current = slug;
+      trackViewContent(product);
+    };
+    if (product.shopifyVariantId) {
+      fire();
+      return undefined;
+    }
+    const timer = setTimeout(fire, 3000);
+    return () => clearTimeout(timer);
+  }, [slug, product]);
+
   useEffect(() => {
     document.body.classList.add("pb-has-sticky-buy");
     return () => document.body.classList.remove("pb-has-sticky-buy");
@@ -225,6 +246,8 @@ function ProductPageContent() {
     const colorName = overrideColor ?? selectedColorName;
 
     if (!isLoggedIn) {
+      const productToTrack = colorName ? { ...product, selectedColor: colorName } : product;
+      trackInitiateCheckout([{ product: productToTrack, quantity: qty }], sale * qty);
       const redirect = `${window.location.pathname}?buy_now=true&qty=${qty}&color=${encodeURIComponent(colorName)}`;
       window.location.href = `/account/login?mode=signup&redirect=${encodeURIComponent(redirect)}`;
       return;

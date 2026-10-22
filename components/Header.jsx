@@ -22,6 +22,7 @@ import {
 import { useStore } from "./StoreContext";
 import AccountMenu from "./AccountMenu";
 import { useHydrated } from "./useHydrated";
+import { trackSearch } from "../lib/meta-pixel";
 import { formatINR, getListableProducts, getSalePrice } from "../lib/utils";
 
 const RECENT_KEY = "pubesto_recent_searches";
@@ -132,6 +133,7 @@ function SearchBar() {
   function submit(value = query) {
     const trimmed = value.trim();
     if (!trimmed) return;
+    trackSearch(trimmed);
     const next = [trimmed, ...recent.filter((t) => t.toLowerCase() !== trimmed.toLowerCase())].slice(0, 6);
     setRecent(next);
     writeRecent(next);

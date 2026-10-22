@@ -45,8 +45,12 @@ function Hero({ products }) {
     return () => clearTimeout(id);
   }, [index]);
 
-  const sale = parsePriceValue(slide.price);
-  const original = parsePriceValue(slide.oldPrice);
+  // Prefer the live Shopify price of the linked product so the banner never shows a
+  // different price than the product page and checkout.
+  const linkedSlug = slide.link?.split("/product/")[1]?.split(/[?#]/)[0];
+  const linkedProduct = linkedSlug ? products.find((p) => p.slug === linkedSlug || p.slugAliases?.includes(linkedSlug) || p.shopifyHandle === linkedSlug) : null;
+  const sale = linkedProduct ? getSalePrice(linkedProduct) : parsePriceValue(slide.price);
+  const original = linkedProduct ? getOriginalPrice(linkedProduct) : parsePriceValue(slide.oldPrice);
   const off = sale && original > sale ? Math.round(((original - sale) / original) * 100) : 0;
 
   const dealProduct = useMemo(

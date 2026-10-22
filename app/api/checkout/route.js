@@ -18,6 +18,32 @@ function formatE164Phone(phone) {
   return null;
 }
 
+// Shopify serves its oldest supported version for retired versions; kept as-is because the
+// draft order flow is known to work with it. Bump deliberately and re-test checkout.
+const ADMIN_API_VERSION = "2023-10";
+const MAX_LINE_QUANTITY = 50;
+
+// Look up real variant prices in Shopify so the browser can never set its own price.
+async function fetchVariantPrices(domain, adminToken, variantIds) {
+  const res = await fetch(`https://${domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": adminToken },
+    body: JSON.stringify({
+      query: `query VariantPrices($ids: [ID!]!) {
+        nodes(ids: $ids) { ... on ProductVariant { id price } }
+      }`,
+      variables: { ids: variantIds },
+    }),
+  });
+  const json = await res.json();
+  if (json.errors) throw new Error(`Variant price lookup failed: ${JSON.stringify(json.errors).slice(0, 300)}`);
+  const prices = new Map();
+  for (const node of json.data?.nodes || []) {
+    if (node?.id && node.price != null) prices.set(node.id, Number(node.price));
+  }
+  return prices;
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -44,8 +70,8 @@ export async function POST(request) {
       if (session) {
         if (session.provider === "shopify" && session.customerAccessToken) {
           customerInfo = await getShopifyCustomer(session.customerAccessToken);
-        } else if (session.provider === "google" && session.id) {
-          customerInfo = await getShopifyCustomerAdmin(session.id);
+        } else if (session.provider === "google" && session.sub) {
+          customerInfo = await getShopifyCustomerAdmin(session.sub);
         }
 
         // Always fallback to session details if customer object wasn't found in Shopify API
@@ -61,34 +87,24 @@ export async function POST(request) {
       console.warn("Failed to retrieve user session during checkout pre-fill:", e.message);
     }
 
-    // Prepare line items for Shopify Draft Order
-    const lineItems = items.map(item => {
-      const line = {
-        quantity: item.quantity,
-      };
+    // Prepare line items for the Shopify draft order. Prices come from Shopify itself
+    // (no priceOverride), so a tampered request can't change what the customer pays.
+    const requestedLines = items.map((item) => ({
+      variantId: String(item.variantId || ""),
+      quantity: Math.min(MAX_LINE_QUANTITY, Math.max(1, Math.floor(Number(item.quantity) || 1))),
+    }));
 
-      const price = Number(item.discountedUnitPrice || item.price) || 0;
+    if (requestedLines.some((line) => !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(line.variantId))) {
+      return NextResponse.json({ error: "Some items in your cart are no longer available. Please remove them and try again." }, { status: 400 });
+    }
 
-      if (item.variantId && String(item.variantId).includes("gid://shopify/")) {
-        line.variantId = item.variantId;
-        // Use priceOverride to set the exact dynamic bundle price
-        line.priceOverride = {
-          amount: String(price.toFixed(2)),
-          currencyCode: "INR"
-        };
-      } else {
-        // Fallback to custom item if no Shopify variant ID exists
-        line.title = item.name;
-        line.originalUnitPrice = String(price.toFixed(2));
-      }
+    const variantPrices = await fetchVariantPrices(domain, adminToken, [...new Set(requestedLines.map((l) => l.variantId))]);
+    if (requestedLines.some((line) => !variantPrices.has(line.variantId))) {
+      return NextResponse.json({ error: "Some items in your cart are no longer available. Please remove them and try again." }, { status: 400 });
+    }
 
-      return line;
-    });
-
-    const totalAmount = items.reduce((sum, item) => {
-      const price = Number(item.discountedUnitPrice || item.price) || 0;
-      return sum + (price * item.quantity);
-    }, 0);
+    const lineItems = requestedLines.map((line) => ({ variantId: line.variantId, quantity: line.quantity }));
+    const totalAmount = requestedLines.reduce((sum, line) => sum + variantPrices.get(line.variantId) * line.quantity, 0);
 
     const shippingLine = totalAmount >= 500 ? {
       title: "Free Priority Shipping",
@@ -180,7 +196,7 @@ export async function POST(request) {
       }
     `;
 
-    let response = await fetch(`https://${domain}/admin/api/2023-10/graphql.json`, {
+    let response = await fetch(`https://${domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -213,10 +229,12 @@ export async function POST(request) {
         lineItems,
         shippingLine,
       };
+      if (draftOrderInput.appliedDiscount) retryInput.appliedDiscount = draftOrderInput.appliedDiscount;
+      if (draftOrderInput.customerId) retryInput.customerId = draftOrderInput.customerId;
       if (draftOrderInput.email) retryInput.email = draftOrderInput.email;
       if (draftOrderInput.phone) retryInput.phone = draftOrderInput.phone;
       
-      response = await fetch(`https://${domain}/admin/api/2023-10/graphql.json`, {
+      response = await fetch(`https://${domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
