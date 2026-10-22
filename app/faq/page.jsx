@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, HelpCircle, Search, Sparkles } from "lucide-react";
+import { ChevronDown, HelpCircle, Search } from "lucide-react";
 import Link from "next/link";
 
 const faqData = [
@@ -102,7 +102,7 @@ export default function FAQPage() {
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(27, 98, 75, 0.08)", color: "var(--brand-color)", padding: "6px 16px", borderRadius: "20px", fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
-            <Sparkles size={14} /> Help Center
+            <HelpCircle size={14} /> Help Center
           </div>
           <h1 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, color: "var(--ink)", fontFamily: "var(--font-display)", fontStyle: "italic", margin: "0 0 12px" }}>
             Frequently Asked Questions

@@ -428,7 +428,6 @@ function ProductPageContent() {
         <section className="pb-section">
           <div className="pb-section-head">
             <div>
-              <div className="pb-eyebrow">Product in action</div>
               <h2>See it for yourself</h2>
             </div>
           </div>

@@ -7,13 +7,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Eye, EyeOff, LogOut, Package, RotateCcw, Truck, User } from "lucide-react";
 import { useStore } from "./StoreContext";
 import GoogleAuthButton from "./GoogleAuthButton";
+import { useHydrated } from "./useHydrated";
 
 function getInitials(name) {
   return (name || "C").split(" ").map((part) => part[0]).join("").toUpperCase().slice(0, 2);
 }
 
 export default function AccountMenu() {
-  const { isLoggedIn, user, logout, refreshAuthSession } = useStore();
+  const store = useStore();
+  // Session state can arrive before this (Suspense-wrapped) header hydrates; render the
+  // logged-out state until hydration so server and client HTML match.
+  const hydrated = useHydrated();
+  const isLoggedIn = hydrated && store.isLoggedIn;
+  const user = hydrated ? store.user : null;
+  const { logout, refreshAuthSession } = store;
   const router = useRouter();
   const containerRef = useRef(null);
   const hoverTimeoutRef = useRef(null);

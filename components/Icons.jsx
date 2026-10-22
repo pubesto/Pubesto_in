@@ -1,6 +1,6 @@
-import { Sparkles, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 
-export { Sparkles, ShoppingBag };
+export { ShoppingBag };
 
 export function SearchIcon() {
   return (

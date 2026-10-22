@@ -18,11 +18,18 @@ export default function ProductRail({ title, subtitle, eyebrow, products, href }
     });
   }
 
+  // When the list changes (e.g. Shopify data replacing the local fallback), scroll-snap
+  // would keep the previously visible card in view and hide the new first item. Reset.
+  const signature = (products || []).map((p) => p.slug).join("|");
   useEffect(() => {
+    trackRef.current?.scrollTo({ left: 0 });
     updateEdges();
+  }, [signature]);
+
+  useEffect(() => {
     window.addEventListener("resize", updateEdges);
     return () => window.removeEventListener("resize", updateEdges);
-  }, [products?.length]);
+  }, []);
 
   function scroll(direction) {
     const el = trackRef.current;

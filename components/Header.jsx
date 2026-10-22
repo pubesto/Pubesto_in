@@ -5,19 +5,15 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BadgePercent,
   Clock,
   Home,
   LayoutGrid,
   MapPin,
   Search,
   ShoppingCart,
-  Sparkles,
-  Truck,
   TrendingUp,
   User,
   X,
-  Zap,
 } from "lucide-react";
 import { useStore } from "./StoreContext";
 import AccountMenu from "./AccountMenu";
@@ -30,10 +26,10 @@ const POPULAR_TERMS = ["Neck fan", "Bottles", "Lunch box", "Speaker tumbler", "M
 const PLACEHOLDER_TERMS = ["\"neck fan\"", "\"lunch box\"", "\"water bottle\"", "\"mini cooler\"", "\"speaker tumbler\""];
 
 const ANNOUNCEMENTS = [
-  { icon: Zap, text: <>Extra <b>10% OFF</b> on all prepaid orders</> },
-  { icon: Truck, text: <><b>FREE shipping</b> on orders above ₹500</> },
-  { icon: Sparkles, text: <>Quality-checked products, <b>packed with care</b></> },
-  { icon: BadgePercent, text: <>Easy <b>7-day returns</b> on eligible orders</> },
+  <>Extra <b>10% OFF</b> on all prepaid orders</>,
+  <><b>FREE shipping</b> on orders above ₹500</>,
+  <>Quality-checked products, <b>packed with care</b></>,
+  <>Easy <b>7-day returns</b> on eligible orders</>,
 ];
 
 function readRecent() {
@@ -283,7 +279,13 @@ function SearchBar() {
 }
 
 function CartButton() {
-  const { cartCount, cartTotal, cartPulseKey, setIsCartOpen } = useStore();
+  const store = useStore();
+  // The saved cart is read from localStorage on the client, so the server always renders
+  // an empty cart. Render that same empty state until hydration has finished.
+  const hydrated = useHydrated();
+  const cartCount = hydrated ? store.cartCount : 0;
+  const cartTotal = hydrated ? store.cartTotal : 0;
+  const { cartPulseKey, setIsCartOpen } = store;
   const isEmpty = cartCount === 0;
 
   return (
@@ -313,7 +315,12 @@ function CartButton() {
 
 function TabBar() {
   const pathname = usePathname();
-  const { cartCount, setIsCartOpen, isCartOpen, isLoggedIn } = useStore();
+  const store = useStore();
+  const hydrated = useHydrated();
+  const cartCount = hydrated ? store.cartCount : 0;
+  const isCartOpen = hydrated && store.isCartOpen;
+  const isLoggedIn = hydrated && store.isLoggedIn;
+  const { setIsCartOpen } = store;
 
   return (
     <nav className="pb-tabbar pb-mobile-only" aria-label="Mobile navigation">
@@ -344,12 +351,20 @@ function CategoryNav() {
   const hydrated = useHydrated();
   const visibleCategories = useVisibleCategories();
   const categories = hydrated ? visibleCategories : [];
-  const activeCategory = pathname === "/shop" ? searchParams.get("category") : null;
+  const onShop = pathname === "/shop";
+  const activeCategory = onShop ? searchParams.get("category") : null;
+  const activeSort = onShop ? searchParams.get("sort") : null;
 
   return (
     <nav className="pb-catnav pb-desktop-only" aria-label="Categories">
-      <Link href="/shop" className={pathname === "/shop" && !activeCategory && !searchParams.get("q") ? "is-active" : ""} prefetch={false}>
-        <LayoutGrid size={15} /> All products
+      <Link href="/shop" className={onShop && !activeCategory && !searchParams.get("q") && !activeSort && !searchParams.get("tag") ? "is-active" : ""} prefetch={false}>
+        All products
+      </Link>
+      <Link href="/shop?sort=newest" className={`is-new ${onShop && activeSort === "newest" && !activeCategory ? "is-active" : ""}`} prefetch={false}>
+        New arrivals
+      </Link>
+      <Link href="/shop?sort=bestselling" className={onShop && activeSort === "bestselling" && !activeCategory ? "is-active" : ""} prefetch={false}>
+        Bestsellers
       </Link>
       {categories.map((category) => (
         <Link
@@ -358,13 +373,12 @@ function CategoryNav() {
           className={`${activeCategory === category.name ? "is-active" : ""} ${category.name === "Sale" ? "is-sale" : ""}`}
           prefetch={false}
         >
-          {category.name === "Sale" ? <BadgePercent size={15} /> : null}
           {category.label || category.name}
         </Link>
       ))}
       <span className="pb-catnav-spacer" />
       <Link href="/returns/track" prefetch={false}>
-        <Truck size={15} /> Track order
+        Track order
       </Link>
       <Link href="/contact" prefetch={false}>Help</Link>
     </nav>
@@ -373,7 +387,9 @@ function CategoryNav() {
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isLoggedIn } = useStore();
+  const store = useStore();
+  const hydrated = useHydrated();
+  const isLoggedIn = hydrated && store.isLoggedIn;
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 8);
@@ -386,9 +402,9 @@ export default function Header() {
     <>
       <div className="pb-announce" role="region" aria-label="Store offers">
         <div className="pb-announce-track">
-          {[...ANNOUNCEMENTS, ...ANNOUNCEMENTS].map(({ icon: Icon, text }, index) => (
+          {[...ANNOUNCEMENTS, ...ANNOUNCEMENTS].map((text, index) => (
             <span key={index} aria-hidden={index >= ANNOUNCEMENTS.length}>
-              <Icon size={14} /> {text}
+              {text}
             </span>
           ))}
         </div>

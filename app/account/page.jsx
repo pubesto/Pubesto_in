@@ -26,7 +26,6 @@ import {
   Search,
   X,
   ArrowUpRight,
-  Sparkles,
   Box,
   RotateCcw,
 } from "lucide-react";
@@ -712,7 +711,7 @@ export default function AccountPage() {
                   </button>
                 ) : (
                   <Link href="/shop" style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px", borderRadius: "9999px", background: "#006994", color: "#fff", fontWeight: 700, fontSize: "13px", textDecoration: "none" }}>
-                    <Sparkles size={14} />
+                    <ShoppingBag size={14} />
                     Start Shopping
                   </Link>
                 )}

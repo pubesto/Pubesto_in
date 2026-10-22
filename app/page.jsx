@@ -7,7 +7,6 @@ import {
   ArrowRight,
   BadgeCheck,
   ChevronRight,
-
   PackageCheck,
   RotateCcw,
   ShieldCheck,
@@ -18,11 +17,10 @@ import {
   Zap,
 } from "lucide-react";
 import { useStore } from "../components/StoreContext";
-import { InstagramIcon } from "../components/Icons";
 import ProductRail from "../components/ProductRail";
 import { useVisibleCategories } from "../components/Header";
 import { heroSlides, peopleChoiceVideos, socialGalleryItems } from "../lib/data";
-import { formatINR, getDiscountPercent, getListableProducts, getOriginalPrice, getSalePrice, parsePriceValue } from "../lib/utils";
+import { byBestSelling, byFeatured, byNewest, formatINR, getDiscountPercent, getListableProducts, getOriginalPrice, getSalePrice, hasTag, isNewArrival, parsePriceValue } from "../lib/utils";
 
 const CATEGORY_TINTS = ["#e7f6ee", "#fff4d6", "#e8f0ff", "#fde8ec", "#efe9ff", "#e3f7f7", "#fff0e3"];
 const SLIDE_MS = 6000;
@@ -92,7 +90,7 @@ function Hero({ products }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="pb-hero-tag"><Zap size={13} fill="currentColor" /> {slide.eyebrow}</span>
+            <span className="pb-hero-tag">{slide.eyebrow}</span>
             <h1>{slide.title}</h1>
             {slide.copy ? <p>{slide.copy}</p> : null}
             {sale ? (
@@ -212,7 +210,6 @@ function VideoReels({ products }) {
     <section className="pb-section">
       <div className="pb-section-head">
         <div>
-          <div className="pb-eyebrow">Shop from videos</div>
           <h2>See it in action</h2>
           <p>Real products, real use — tap to shop what you see.</p>
         </div>
@@ -264,7 +261,6 @@ function OfferBand() {
     <motion.section className="pb-section" {...fadeUp}>
       <div className="pb-offer-band">
         <div>
-          <div className="pb-eyebrow"><Zap size={13} fill="currentColor" /> Smart saver</div>
           <h2>Pay online, <span>save 10% more.</span></h2>
           <p>Every prepaid order gets an instant extra 10% off — on top of already discounted prices. No coupon needed.</p>
           <Link className="pb-btn pb-btn-turq" href="/shop" prefetch={false}>
@@ -315,7 +311,6 @@ function Reviews() {
     <section className="pb-section">
       <div className="pb-section-head">
         <div>
-          <div className="pb-eyebrow"><Star size={13} fill="currentColor" /> Customer love</div>
           <h2>What our customers say</h2>
         </div>
       </div>
@@ -347,7 +342,6 @@ function SocialGallery() {
     <section className="pb-section">
       <div className="pb-section-head">
         <div>
-          <div className="pb-eyebrow"><InstagramIcon size={13} /> @pubesto_official</div>
           <h2>Join the Pubesto circle</h2>
         </div>
         <a className="pb-see-all" href="https://www.instagram.com/pubesto_official/" target="_blank" rel="noreferrer">
@@ -384,10 +378,32 @@ export default function Home() {
   const categories = useVisibleCategories();
   const listable = useMemo(() => getListableProducts(products), [products]);
 
-  const bestsellers = useMemo(
-    () => [...listable].sort((a, b) => (Number(b.reviews) || 0) - (Number(a.reviews) || 0)).slice(0, 12),
-    [listable]
-  );
+  // Everything below is driven by Shopify, so the store owner controls it without code:
+  // - New arrivals: upload date (newest first), products from the last NEW_ARRIVAL_DAYS.
+  // - Featured: the order of products in the Shopify "Home page" collection.
+  // - Festive: products tagged "Diwali" or "Festive".
+  // - Bestsellers: Shopify's real best-selling ranking.
+  const inStock = useMemo(() => listable.filter((p) => p.inStock !== false), [listable]);
+  const newArrivals = useMemo(() => {
+    const recent = inStock.filter((p) => isNewArrival(p)).sort(byNewest);
+    // Keep the row useful between uploads: fall back to the latest products overall.
+    return (recent.length >= 4 ? recent : [...inStock].sort(byNewest)).slice(0, 16);
+  }, [inStock]);
+  const bestsellers = useMemo(() => [...inStock].sort(byBestSelling).slice(0, 12), [inStock]);
+  const featured = useMemo(() => {
+    const picks = inStock.filter((p) => p.featuredRank).sort(byFeatured);
+    // With only a few hand-picked products the row looks empty, so keep the owner's
+    // picks first and top up with the biggest discounts (not best sellers, which have
+    // their own row right below).
+    const MIN_FEATURED = 6;
+    if (picks.length >= MIN_FEATURED) return picks;
+    const used = new Set([...picks, ...bestsellers.slice(0, 5)].map((p) => p.slug));
+    const topUp = inStock
+      .filter((p) => !used.has(p.slug) && getDiscountPercent(p) > 0)
+      .sort((a, b) => getDiscountPercent(b) - getDiscountPercent(a));
+    return [...picks, ...topUp].slice(0, MIN_FEATURED);
+  }, [inStock, bestsellers]);
+  const festive = useMemo(() => inStock.filter((p) => hasTag(p, ["Diwali", "Festive"])).sort(byBestSelling).slice(0, 16), [inStock]);
   const deals = useMemo(
     () => listable.filter((p) => getDiscountPercent(p) > 0).sort((a, b) => getDiscountPercent(b) - getDiscountPercent(a)).slice(0, 12),
     [listable]
@@ -411,9 +427,18 @@ export default function Home() {
         <Hero products={listable} />
         <UspStrip />
         <CategoryGrid />
-        <ProductRail eyebrow="🔥 Most loved" title="Bestsellers" subtitle="The picks everyone keeps coming back for." products={bestsellers} href="/shop" />
+        <ProductRail title="New arrivals" subtitle="The latest additions to Pubesto." products={newArrivals} href="/shop?sort=newest" />
+        {featured.length ? (
+          <section className="pb-featured">
+            <ProductRail title="Featured for you" subtitle="Our favourites right now." products={featured} href="/shop?sort=featured" />
+          </section>
+        ) : null}
+        <ProductRail title="Bestsellers" subtitle="What Pubesto customers buy the most." products={bestsellers} href="/shop?sort=bestselling" />
         <VideoReels products={listable} />
-        <ProductRail eyebrow="Limited-time prices" title="Top deals for you" products={deals} href="/shop?category=Sale" />
+        <ProductRail title="Top deals for you" products={deals} href="/shop?category=Sale" />
+        {festive.length >= 3 ? (
+          <ProductRail title="Diwali specials" subtitle="Lights, décor and gifting for the festival of lights." products={festive} href="/shop?tag=Diwali" />
+        ) : null}
         <OfferBand />
         {categoryRails.map((category) => (
           <ProductRail

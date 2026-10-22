@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Minus, Plus, Star } from "lucide-react";
 import { useStore } from "./StoreContext";
-import { formatINR, getDiscountPercent, getOriginalPrice, getSalePrice } from "../lib/utils";
+import { formatINR, getDiscountPercent, getOriginalPrice, getSalePrice, isNewArrival, isTopBestseller } from "../lib/utils";
 
 export function QuantityStepper({ quantity, onChange, size }) {
   return (
@@ -31,6 +31,7 @@ export default function ProductCard({ product, index = 0 }) {
   const sale = getSalePrice(product);
   const original = getOriginalPrice(product);
   const href = `/product/${product.slug}`;
+  const flag = isNewArrival(product) ? "new" : isTopBestseller(product) ? "bestseller" : null;
 
   return (
     <motion.article
@@ -47,6 +48,8 @@ export default function ProductCard({ product, index = 0 }) {
         ) : discount > 0 ? (
           <span className="pb-off-tag">{discount}% OFF</span>
         ) : null}
+        {flag === "new" ? <span className="pb-card-flag is-new">NEW</span> : null}
+        {flag === "bestseller" ? <span className="pb-card-flag is-best">★ Bestseller</span> : null}
       </Link>
 
       <div className="pb-card-body">

@@ -8,10 +8,14 @@ import { useStore } from "../../components/StoreContext";
 import ProductCard from "../../components/ProductCard";
 import { useHydrated } from "../../components/useHydrated";
 import { useVisibleCategories } from "../../components/Header";
-import { getDiscountPercent, getListableProducts, getSalePrice, productInCategory } from "../../lib/utils";
+import { byBestSelling, byFeatured, byNewest, getDiscountPercent, getListableProducts, getSalePrice, hasTag, productInCategory } from "../../lib/utils";
 
+// "newest" is the default so freshly uploaded products are seen first.
+const DEFAULT_SORT = "newest";
 const SORTS = [
-  { value: "popular", label: "Popularity" },
+  { value: "newest", label: "Newest first" },
+  { value: "bestselling", label: "Best selling" },
+  { value: "featured", label: "Featured" },
   { value: "discount", label: "Biggest discount" },
   { value: "price-asc", label: "Price: low to high" },
   { value: "price-desc", label: "Price: high to low" },
@@ -44,7 +48,9 @@ function ShopContent() {
 
   const activeCategory = searchParams.get("category") || "";
   const query = (searchParams.get("q") || "").trim();
-  const [sort, setSort] = useState("popular");
+  const tag = (searchParams.get("tag") || "").trim();
+  const sortParam = searchParams.get("sort");
+  const sort = SORTS.some((s) => s.value === sortParam) ? sortParam : DEFAULT_SORT;
   const [priceRange, setPriceRange] = useState("all");
 
   function setParam(key, value) {
@@ -60,10 +66,17 @@ function ShopContent() {
   const results = useMemo(() => {
     const range = PRICE_RANGES.find((r) => r.value === priceRange) || PRICE_RANGES[0];
     const filtered = listable.filter(
-      (p) => productInCategory(p, activeCategory) && matchesQuery(p, query) && range.test(getSalePrice(p))
+      (p) =>
+        productInCategory(p, activeCategory) &&
+        matchesQuery(p, query) &&
+        (!tag || hasTag(p, [tag])) &&
+        range.test(getSalePrice(p))
     );
     const sorters = {
-      popular: (a, b) => (Number(b.reviews) || 0) - (Number(a.reviews) || 0),
+      newest: byNewest,
+      bestselling: byBestSelling,
+      // Featured products in the merchant's order, then everything else newest first.
+      featured: (a, b) => byFeatured(a, b) || byNewest(a, b),
       discount: (a, b) => getDiscountPercent(b) - getDiscountPercent(a),
       "price-asc": (a, b) => getSalePrice(a) - getSalePrice(b),
       "price-desc": (a, b) => getSalePrice(b) - getSalePrice(a),
@@ -71,10 +84,12 @@ function ShopContent() {
     };
     // Out-of-stock items always sink to the end.
     return [...filtered].sort((a, b) => (a.inStock === false) - (b.inStock === false) || sorters[sort](a, b));
-  }, [listable, activeCategory, query, priceRange, sort]);
+  }, [listable, activeCategory, query, tag, priceRange, sort]);
 
   const activeCategoryData = categories.find((c) => c.name === activeCategory);
-  const title = query ? `Results for “${query}”` : activeCategoryData?.label || activeCategory || "All products";
+  const title = query
+    ? `Results for “${query}”`
+    : activeCategoryData?.label || activeCategory || (tag ? `${tag} collection` : sort === "newest" && sortParam ? "New arrivals" : sort === "bestselling" && sortParam ? "Bestsellers" : "All products");
 
   return (
     <main className="pb-container">
@@ -147,11 +162,16 @@ function ShopContent() {
                   “{query}” <X size={14} />
                 </button>
               ) : null}
+              {tag ? (
+                <button type="button" className="pb-chip is-active" onClick={() => setParam("tag", "")}>
+                  {tag} <X size={14} />
+                </button>
+              ) : null}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span className="pb-count pb-desktop-only"><b>{results.length}</b> item{results.length === 1 ? "" : "s"}</span>
               <label className="pb-sr-only" htmlFor="pb-sort">Sort by</label>
-              <select id="pb-sort" className="pb-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <select id="pb-sort" className="pb-select" value={sort} onChange={(e) => setParam("sort", e.target.value === DEFAULT_SORT ? "" : e.target.value)}>
                 {SORTS.map((s) => (
                   <option key={s.value} value={s.value}>Sort: {s.label}</option>
                 ))}
