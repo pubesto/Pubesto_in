@@ -44,7 +44,11 @@ export async function GET() {
     }
 
     const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'jjiygt-gt.myshopify.com';
-    const storefrontToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '1ede0d4be7821e72f918bae0ea0981be';
+    // Server-side: prefer the private Storefront token (public tokens are rejected on this store).
+    const storefrontPrivateToken = String(process.env.SHOPIFY_STOREFRONT_PRIVATE_TOKEN || "").trim();
+    const storefrontAuthHeaders = storefrontPrivateToken
+      ? { "Shopify-Storefront-Private-Token": storefrontPrivateToken }
+      : { "X-Shopify-Storefront-Access-Token": process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "" };
 
     // Try fetching via Storefront API if we have a customer access token (Shopify session)
     if (account.session?.provider === "shopify" && account.session?.customerAccessToken) {
@@ -109,7 +113,7 @@ export async function GET() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Shopify-Storefront-Access-Token": storefrontToken,
+            ...storefrontAuthHeaders,
           },
           body: JSON.stringify({
             query: sfQuery,
