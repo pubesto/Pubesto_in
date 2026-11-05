@@ -1,14 +1,14 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions } from "../../../../lib/auth-session";
-import { createShopifyCustomer } from "../../../../lib/shopify-customer";
+import { getAuth } from "@/lib/auth";
+import { getPrisma } from "@/lib/server/db";
+import { authErrorMessage, clearLegacySession, withAuthCookies } from "@/lib/server/storefront/auth-bridge";
 import {
   cleanAuthName,
   cleanAuthPhone,
   isValidAuthEmail,
   normalizeAuthEmail,
   readAuthJson,
-} from "../../../../lib/auth-validation";
+} from "@/lib/auth-validation";
 
 export const dynamic = "force-dynamic";
 
@@ -32,26 +32,47 @@ export async function POST(request) {
       return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
     }
 
-    let authResult;
-    try {
-      authResult = await createShopifyCustomer(input);
-    } catch (error) {
-      return NextResponse.json({ error: error.message || "Signup failed." }, { status: 400 });
+    const existing = await getPrisma().user.findUnique({
+      where: { email: input.email },
+      select: { accounts: { select: { providerId: true } } },
+    });
+    if (existing) {
+      const hasPassword = existing.accounts.some((account) => account.providerId === "credential");
+      return NextResponse.json(
+        {
+          error: hasPassword
+            ? "An account with this email already exists. Please log in."
+            : "You already have an account from our previous store. Tap “Forgot password” to set a password — your orders are waiting.",
+          code: hasPassword ? "USER_EXISTS" : "PASSWORD_NOT_SET",
+        },
+        { status: 409 }
+      );
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set(
-      AUTH_COOKIE_NAME,
-      createSessionToken(authResult.user, {
-        provider: "shopify",
-        customerAccessToken: authResult.customerAccessToken,
-        expiresAt: authResult.expiresAt,
-      }),
-      getSessionCookieOptions()
-    );
+    const result = await getAuth().api.signUpEmail({
+      body: {
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        ...(input.phone ? { phone: input.phone } : {}),
+      },
+      headers: request.headers,
+      asResponse: true,
+    });
 
-    return NextResponse.json({ success: true, user: authResult.user }, { status: 201 });
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: await authErrorMessage(result, "Signup failed. Please try again.") },
+        { status: 400 }
+      );
+    }
+
+    const data = await result.clone().json();
+    return clearLegacySession(
+      withAuthCookies(result, { success: true, user: data?.user ?? null }, { status: 201 })
+    );
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Signup failed." }, { status: 400 });
+    console.error("POST /api/auth/signup error:", error);
+    return NextResponse.json({ error: "Signup failed. Please try again." }, { status: 500 });
   }
 }

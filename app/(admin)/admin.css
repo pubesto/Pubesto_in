@@ -1,0 +1,299 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@font-face {
+  font-family: "Akzidenz-Grotesk Pro";
+  src: url("/fonts/akzidenz-grotesk/AkzidenzGroteskPro-RegularItalic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Akzidenz-Grotesk Pro";
+  src: url("/fonts/akzidenz-grotesk/AkzidenzGroteskPro-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Akzidenz-Grotesk Pro";
+  src: url("/fonts/akzidenz-grotesk/AkzidenzGroteskPro-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Akzidenz-Grotesk Pro";
+  src: url("/fonts/akzidenz-grotesk/AkzidenzGroteskPro-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --text-h1: 56px;
+  --text-h1--line-height: 120px;
+  --text-h1--font-weight: 400;
+  --text-h2: 40px;
+  --text-h2--line-height: 1;
+  --text-h2--font-weight: 400;
+  --text-h3: 22px;
+  --text-h3--line-height: 1;
+  --text-h3--font-weight: 500;
+  --text-h4: 22px;
+  --text-h4--line-height: 25px;
+  --text-h4--font-weight: 500;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1;
+  --text-body: 16px;
+  --text-body--line-height: 20px;
+  --text-button: 16px;
+  --text-button--line-height: 1;
+  --text-button--letter-spacing: 0.01em;
+  --text-caption: 14px;
+  --text-caption--line-height: 1;
+
+  /* Figma greys */
+  --color-ink-900: #141414;
+  --color-ink-800: #292929;
+  --color-ink-700: #4f4f4f;
+  --color-ink-650: #525252;
+  --color-ink-600: #666666;
+  --color-ink-400: #8f8f8f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-body), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-heading: var(--font-body), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Separate brand colors */
+  --color-brand-black: var(--brand-black);
+  --color-brand-white: var(--brand-white);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-brown: var(--brand-brown);
+  --color-brand-blue: var(--brand-blue);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Brand colors */
+  --brand-black: #000000;
+  --brand-white: #ffffff;
+  --brand-gray: #eaeaea;
+  --brand-brown: #964727;
+  --brand-blue: #0c5a85;
+
+  /* Header stack */
+  --announcement-height: 28px;
+  --main-navbar-height: 52px;
+  --header-stack-height: calc(var(--announcement-height) + var(--main-navbar-height));
+
+  /* Base */
+  --background: #ffffff;
+  --foreground: #000000;
+
+  /* Surfaces */
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+
+  /* Primary */
+  --primary: #004a69;
+  --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --secondary: #eaeaea;
+  --secondary-foreground: #000000;
+
+  /* Muted */
+  --muted: #eaeaea;
+  --muted-foreground: #737373;
+
+  /* Accent */
+  --accent: #eaeaea;
+  --accent-foreground: #000000;
+
+  /* Destructive */
+  --destructive: #dc2626;
+
+  /* Borders and inputs */
+  --border: #eaeaea;
+  --input: #eaeaea;
+  --ring: #006994;
+
+  /* Charts */
+  --chart-1: #004a69;
+  --chart-2: #2a9d8f;
+  --chart-3: #e76f51;
+  --chart-4: #8ab17d;
+  --chart-5: #b8c4cc;
+
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #004a69;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaeaea;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #eaeaea;
+  --sidebar-ring: #000000;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-black) var(--brand-white);
+  }
+
+  /*
+   * Type base: 14px body copy (client spec / Figma). The html root stays at the
+   * browser default 16px so rem-based Tailwind utilities keep their sizes.
+   */
+  body {
+    @apply bg-background text-foreground;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+    /* Figma: 0% tracking on body, headings, product names and prices. */
+    letter-spacing: 0;
+    font-kerning: normal;
+    font-feature-settings: "kern" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    @apply font-sans;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Form controls don't inherit type by default; keep them on the 14px scale. */
+  input,
+  select,
+  textarea,
+  button {
+    font-kerning: normal;
+    letter-spacing: inherit;
+  }
+
+  body[data-scroll-locked] {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--brand-white);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    border: 2px solid var(--brand-white);
+    background: var(--brand-black);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-black);
+  }
+
+  @media print {
+    html,
+    body {
+      overflow: visible !important;
+      scrollbar-width: none !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+      scrollbar-width: none !important;
+    }
+
+    *::-webkit-scrollbar,
+    *::-webkit-scrollbar-track,
+    *::-webkit-scrollbar-thumb {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+  }
+}
+
+
+/* Banner crop focus set in the admin (lib/banner-media.ts bannerFocusProps).
+   Unlayered, so it wins over Tailwind's object-* utilities. */
+.banner-focus,
+.banner-focus-md {
+  object-position: var(--focus-mobile);
+}
+@media (min-width: 640px) {
+  .banner-focus {
+    object-position: var(--focus-desktop);
+  }
+}
+@media (min-width: 768px) {
+  .banner-focus-md {
+    object-position: var(--focus-desktop);
+  }
+}
+

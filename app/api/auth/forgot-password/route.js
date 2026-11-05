@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { recoverShopifyCustomerPassword } from "../../../../lib/shopify-customer";
-import { isValidAuthEmail, normalizeAuthEmail, readAuthJson } from "../../../../lib/auth-validation";
+import { getAuth } from "@/lib/auth";
+import { isValidAuthEmail, normalizeAuthEmail, readAuthJson } from "@/lib/auth-validation";
 
 export const dynamic = "force-dynamic";
 
@@ -13,20 +13,19 @@ export async function POST(request) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
     }
 
-    const message = "If an account exists for that email, password reset instructions are ready.";
+    // The emailed link goes through better-auth, then lands on /account/reset?token=…
+    await getAuth().api.requestPasswordReset({
+      body: { email, redirectTo: "/account/reset" },
+      headers: request.headers,
+    });
 
-    try {
-      await recoverShopifyCustomerPassword(email);
-      return NextResponse.json({
-        success: true,
-        message,
-        resetUrl: "",
-      });
-    } catch (error) {
-      return NextResponse.json({ error: error.message || "Could not start password reset." }, { status: 400 });
-    }
+    return NextResponse.json({
+      success: true,
+      message: "If an account exists for that email, we've sent a link to set a new password.",
+      resetUrl: "",
+    });
   } catch (error) {
     console.error("POST /api/auth/forgot-password error:", error);
-    return NextResponse.json({ error: "Could not start password reset." }, { status: 500 });
+    return NextResponse.json({ error: "Could not start password reset. Please try again." }, { status: 500 });
   }
 }

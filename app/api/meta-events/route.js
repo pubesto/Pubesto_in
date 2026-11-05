@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../lib/auth-session";
-import { ALLOWED_EVENTS, sendMetaEvent } from "../../../lib/meta-capi";
+import { getCurrentUser } from "@/lib/server/dal/auth";
+import { ALLOWED_EVENTS, sendMetaEvent } from "@/lib/meta-capi";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +37,7 @@ export async function POST(req) {
 
   const cookieStore = await cookies();
   const headerStore = await headers();
-  const session = parseSessionToken(cookieStore.get(AUTH_COOKIE_NAME)?.value);
+  const sessionUser = await getCurrentUser().catch(() => null);
   const sourceUrl = typeof eventSourceUrl === "string" ? eventSourceUrl.slice(0, 1000) : undefined;
 
   try {
@@ -51,8 +51,8 @@ export async function POST(req) {
         userAgent: headerStore.get("user-agent") || "",
         fbp: cookieStore.get("_fbp")?.value,
         fbc: clickId(cookieStore, sourceUrl),
-        email: session?.email,
-        id: session?.sub,
+        email: sessionUser?.email,
+        id: sessionUser?.id,
       },
     });
   } catch (error) {

@@ -1,10 +1,13 @@
-import { products } from '../lib/data';
+import { connection } from 'next/server';
+import { getStorefrontCatalog } from '@/lib/server/storefront/catalog';
 
 /**
  * Dynamically generates the sitemap for search engines.
  * Includes all static pages and dynamic product pages.
  */
 export default async function sitemap() {
+  await connection();
+  const { products } = await getStorefrontCatalog();
   const baseUrl = 'https://pubesto.com';
 
   // Dynamic product pages

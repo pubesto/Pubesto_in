@@ -1,57 +1,42 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
-import {
-  buildGoogleAuthorizationUrl,
-  getGoogleAuthConfig,
-  getSafeAuthRedirect,
-  GOOGLE_OAUTH_REDIRECT_COOKIE,
-  GOOGLE_OAUTH_STATE_COOKIE,
-} from "../../../../lib/google-auth";
+import { getAuth } from "@/lib/auth";
+import { getSafeRedirectPath } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const GOOGLE_COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
-  maxAge: 10 * 60,
-  path: "/",
-};
-
-function redirectWithError(request, error) {
-  const loginUrl = new URL("/account/login", request.url);
-  loginUrl.searchParams.set("authError", error);
-  return NextResponse.redirect(loginUrl);
+function loginError(request, code) {
+  const url = new URL("/account/login", request.url);
+  url.searchParams.set("authError", code);
+  return NextResponse.redirect(url);
 }
 
+/** Starts Google sign-in (better-auth) and returns to ?redirect= afterwards. */
 export async function GET(request) {
-  const { clientId, clientSecret, redirectUri } = getGoogleAuthConfig(request);
-  const requestUrl = new URL(request.url);
-  // Mock Google login is for local development only. Never trust the Host header for this.
-  const isDev = process.env.NODE_ENV !== "production";
-
-  if (!clientId || !clientSecret) {
-    if (isDev) {
-      const state = crypto.randomBytes(24).toString("base64url");
-      const redirectTo = getSafeAuthRedirect(requestUrl.searchParams.get("redirect"));
-      const callbackUrl = new URL("/api/auth/google/callback", request.url);
-      callbackUrl.searchParams.set("code", "mock_code");
-      callbackUrl.searchParams.set("state", state);
-
-      const response = NextResponse.redirect(callbackUrl);
-      response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE, state, GOOGLE_COOKIE_OPTIONS);
-      response.cookies.set(GOOGLE_OAUTH_REDIRECT_COOKIE, encodeURIComponent(redirectTo), GOOGLE_COOKIE_OPTIONS);
-      return response;
-    }
-    return redirectWithError(request, "google_config");
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return loginError(request, "google_config");
   }
 
-  const state = crypto.randomBytes(24).toString("base64url");
-  const redirectTo = getSafeAuthRedirect(requestUrl.searchParams.get("redirect"));
-  const googleUrl = buildGoogleAuthorizationUrl({ clientId, redirectUri, state });
+  const redirectTo = getSafeRedirectPath(new URL(request.url).searchParams.get("redirect"), "/account");
+  try {
+    const result = await getAuth().api.signInSocial({
+      body: {
+        provider: "google",
+        callbackURL: redirectTo,
+        errorCallbackURL: "/account/login?authError=google_failed",
+      },
+      headers: request.headers,
+      asResponse: true,
+    });
+    const data = await result.json();
+    if (!data?.url) return loginError(request, "google_failed");
 
-  const response = NextResponse.redirect(googleUrl);
-  response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE, state, GOOGLE_COOKIE_OPTIONS);
-  response.cookies.set(GOOGLE_OAUTH_REDIRECT_COOKIE, encodeURIComponent(redirectTo), GOOGLE_COOKIE_OPTIONS);
-  return response;
+    const response = NextResponse.redirect(data.url);
+    for (const cookie of result.headers.getSetCookie()) {
+      response.headers.append("set-cookie", cookie);
+    }
+    return response;
+  } catch (error) {
+    console.error("GET /api/auth/google error:", error);
+    return loginError(request, "google_failed");
+  }
 }

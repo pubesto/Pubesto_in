@@ -15,7 +15,7 @@ const FREE_SHIPPING_THRESHOLD = 500;
 function FloatingCartBar() {
   const { cartItems, cartCount, cartTotal, isCartOpen, setIsCartOpen } = useStore();
   const pathname = usePathname();
-  const hidden = isCartOpen || cartCount === 0 || pathname.startsWith("/account");
+  const hidden = isCartOpen || cartCount === 0 || pathname.startsWith("/account") || pathname.startsWith("/checkout");
 
   return (
     <AnimatePresence>

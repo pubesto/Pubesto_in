@@ -1,105 +1,42 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions, parseSessionToken } from "../../../lib/auth-session";
-import { getShopifyCustomer, updateShopifyCustomer, getShopifyCustomerAdmin, updateShopifyCustomerAdmin } from "../../../lib/shopify-customer";
+import { getPrisma } from "@/lib/server/db";
+import { getStorefrontUser, normalizeAddresses } from "@/lib/server/storefront/account";
+import { cleanAuthName, cleanAuthPhone } from "@/lib/auth-validation";
 
 export const dynamic = "force-dynamic";
 
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-  const session = parseSessionToken(token);
-  if (!session) return null;
-
-  if (session.provider === "shopify" && session.customerAccessToken) {
-    const user = await getShopifyCustomer(session.customerAccessToken);
-    return user ? { user, session } : null;
-  }
-  if (session.provider === "google" && session.sub) {
-    const user = (await getShopifyCustomerAdmin(session.sub)) || {
-      id: session.sub,
-      name: session.name,
-      email: session.email,
-      provider: "google",
-    };
-    return { user, session };
-  }
-
-  return null;
-}
-
 export async function GET() {
-  try {
-    const account = await getCurrentUser();
-    if (!account?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return NextResponse.json({ user: account.user });
-  } catch (error) {
-    console.error("GET /api/account error:", error);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getStorefrontUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json({ user });
 }
 
+/** Update name, phone and saved addresses. */
 export async function PATCH(request) {
   try {
-    const account = await getCurrentUser();
-    if (!account?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getStorefrontUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
-
-    if (account.session.provider === "shopify" && account.session.customerAccessToken) {
-      const result = await updateShopifyCustomer(account.session.customerAccessToken, {
-        name: body.name,
-        phone: body.phone,
-        addresses: body.addresses,
-      });
-
-      if (!result.user) {
-        return NextResponse.json({ error: "Could not update account." }, { status: 400 });
-      }
-
-      const cookieStore = await cookies();
-      cookieStore.set(
-        AUTH_COOKIE_NAME,
-        createSessionToken(result.user, {
-          provider: "shopify",
-          customerAccessToken: result.customerAccessToken,
-          expiresAt: result.expiresAt,
-        }),
-        getSessionCookieOptions()
-      );
-
-      return NextResponse.json({ success: true, user: result.user });
+    const data = {};
+    if (body.name !== undefined) {
+      const name = cleanAuthName(body.name);
+      if (!name) return NextResponse.json({ error: "Enter your full name." }, { status: 400 });
+      data.name = name;
     }
-    
-    if (account.session.provider === "google" && account.session.sub) {
-      const user = await updateShopifyCustomerAdmin(account.session.sub, {
-        name: body.name,
-        phone: body.phone,
-      });
-
-      if (!user) {
-        return NextResponse.json({ error: "Could not update account." }, { status: 400 });
-      }
-
-      const cookieStore = await cookies();
-      cookieStore.set(
-        AUTH_COOKIE_NAME,
-        createSessionToken(user, {
-          provider: "google",
-        }),
-        getSessionCookieOptions()
-      );
-
-      return NextResponse.json({ success: true, user });
+    if (body.phone !== undefined) {
+      data.phone = cleanAuthPhone(body.phone) || null;
+    }
+    if (body.addresses !== undefined) {
+      const addresses = normalizeAddresses(body.addresses);
+      if (addresses.length && !addresses.some((address) => address.isDefault)) addresses[0].isDefault = true;
+      data.addresses = addresses;
     }
 
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    await getPrisma().user.update({ where: { id: user.id }, data });
+    return NextResponse.json({ success: true, user: await getStorefrontUser() });
   } catch (error) {
     console.error("PATCH /api/account error:", error);
-    return NextResponse.json({ error: error.message || "Could not update account." }, { status: 400 });
+    return NextResponse.json({ error: "Could not update your account." }, { status: 400 });
   }
 }

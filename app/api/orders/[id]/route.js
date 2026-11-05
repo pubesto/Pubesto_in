@@ -1,199 +1,39 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../../lib/auth-session";
-import { getShopifyStoreDomain } from "../../../../lib/shopify-domains";
+import { getCurrentUser } from "@/lib/server/dal/auth";
+import {
+  findOrderByReference,
+  listCustomerOrders,
+  orderReference,
+} from "@/lib/server/storefront/account";
 
 export const dynamic = "force-dynamic";
 
+const NOT_FOUND = { error: "Order not found. Check the order ID and the email you're logged in with." };
+
+/** Order tracking for the signed-in customer: "PUB-00012", "#1006" or "1006". */
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    // Order names are like "#1001" or "PUB-2026-7215"; anything else could alter the search query.
-    const trimmedId = decodeURIComponent(id || "").trim();
-
-    if (!trimmedId || !/^[#A-Za-z0-9-]{1,40}$/.test(trimmedId)) {
+    const reference = decodeURIComponent(id || "").trim();
+    if (!reference || !/^[#A-Za-z0-9-]{1,40}$/.test(reference)) {
       return NextResponse.json({ error: "Order ID is required." }, { status: 400 });
     }
 
-    // Only the customer who placed the order may view it.
-    const cookieStore = await cookies();
-    const session = parseSessionToken(cookieStore.get(AUTH_COOKIE_NAME)?.value);
-    const sessionEmail = String(session?.email || "").trim().toLowerCase();
-    if (!sessionEmail) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ error: "Please log in to track your order." }, { status: 401 });
     }
 
-    const domain = getShopifyStoreDomain();
-    const adminToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-
-    if (!adminToken) {
-      return NextResponse.json({ error: "Shopify integration not configured." }, { status: 500 });
+    const order = await findOrderByReference(reference);
+    // Same response as a missing order, so order numbers can't be probed.
+    if (!order || (order.userId !== user.id && order.email.toLowerCase() !== user.email.toLowerCase())) {
+      return NextResponse.json(NOT_FOUND, { status: 404 });
     }
 
-    const query = `
-      query getOrderByName($query: String!) {
-        orders(first: 1, query: $query) {
-          edges {
-            node {
-              id
-              name
-              email
-              createdAt
-              cancelledAt
-              financialStatus
-              fulfillmentStatus
-              totalPriceSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              subtotalPriceSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              totalShippingPriceSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              lineItems(first: 50) {
-                edges {
-                  node {
-                    title
-                    quantity
-                    variant {
-                      id
-                      title
-                      price
-                      image {
-                        url
-                      }
-                      product {
-                        handle
-                        featuredImage {
-                          url
-                        }
-                        images(first: 1) {
-                          edges {
-                            node {
-                              url
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `;
-
-    const response = await fetch(`https://${domain}/admin/api/2023-10/graphql.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": adminToken,
-      },
-      body: JSON.stringify({
-        query,
-        variables: {
-          query: `name:${trimmedId}`
-        }
-      }),
-      cache: "no-store",
-    });
-
-    const resJson = await response.json();
-
-    if (resJson.errors) {
-      console.error("Shopify single order fetch errors:", resJson.errors);
-      return NextResponse.json({ error: "Failed to fetch order from Shopify." }, { status: 500 });
-    }
-
-    const edges = resJson.data?.orders?.edges || [];
-    if (edges.length === 0) {
-      return NextResponse.json({ error: "Order not found on Shopify." }, { status: 404 });
-    }
-
-    const node = edges[0].node;
-    if (String(node.email || "").trim().toLowerCase() !== sessionEmail) {
-      // Same response as a missing order, so order numbers can't be probed.
-      return NextResponse.json({ error: "Order not found on Shopify." }, { status: 404 });
-    }
-    const subtotal = parseFloat(node.subtotalPriceSet?.shopMoney?.amount || 0);
-    const shipping = parseFloat(node.totalShippingPriceSet?.shopMoney?.amount || 0);
-    const total = parseFloat(node.totalPriceSet?.shopMoney?.amount || 0);
-
-    // Determine order status
-    let status = "processing";
-    if (node.cancelledAt) {
-      status = "cancelled";
-    } else if (node.fulfillmentStatus === "FULFILLED") {
-      status = "delivered";
-    } else if (node.fulfillmentStatus === "PARTIALLY_FULFILLED" || node.fulfillmentStatus === "RESTOCKED") {
-      status = "shipped";
-    } else {
-      status = "processing";
-    }
-
-    // Map payment status
-    let paymentStatus = "unpaid";
-    if (node.financialStatus === "PAID") {
-      paymentStatus = "paid";
-    }
-
-    const items = (node.lineItems?.edges || []).map(({ node: item }) => {
-      const variant = item.variant;
-      const slug = variant?.product?.handle || item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const priceNumber = parseFloat(variant?.price || 0);
-      
-      let color = null;
-      if (variant?.title && variant.title !== "Default Title" && variant.title !== "Default") {
-        color = variant.title;
-      }
-
-      let image = "/images/products/neck-fan.png";
-      if (variant?.image?.url) {
-        image = variant.image.url;
-      } else if (variant?.product?.featuredImage?.url) {
-        image = variant.product.featuredImage.url;
-      } else if (variant?.product?.images?.edges?.[0]?.node?.url) {
-        image = variant.product.images.edges[0].node.url;
-      }
-
-      return {
-        id: variant?.id || slug,
-        name: item.title,
-        image,
-        price: `Rs. ${priceNumber.toLocaleString("en-IN")}`,
-        priceNumber,
-        quantity: item.quantity,
-        slug,
-        color,
-      };
-    });
-
-    const orderObj = {
-      id: node.name, // e.g. "PUB-2026-7215"
-      date: node.createdAt,
-      items,
-      subtotal,
-      shipping,
-      total,
-      status,
-      paymentStatus,
-      paymentId: node.id,
-    };
-
-    return NextResponse.json({ order: orderObj });
-
+    const orders = await listCustomerOrders(user);
+    const match = orders.find((entry) => entry.orderId === order.id);
+    if (!match) return NextResponse.json(NOT_FOUND, { status: 404 });
+    return NextResponse.json({ order: { ...match, id: orderReference(order) } });
   } catch (error) {
     console.error("GET /api/orders/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

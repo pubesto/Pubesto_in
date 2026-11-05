@@ -21,3 +21,13 @@ data/order-cancellations.json
 # Local browser profiles and logs (may contain cookies / saved logins)
 .tmp-chrome-profile/
 *.log
+
+# generated database client
+/generated/prisma
+
+# local development database
+/.local-postgres-data/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

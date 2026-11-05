@@ -1,11 +1,15 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, getClearSessionCookieOptions } from "../../../../lib/auth-session";
+import { getAuth } from "@/lib/auth";
+import { clearLegacySession, withAuthCookies } from "@/lib/server/storefront/auth-bridge";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
-  const cookieStore = await cookies();
-  cookieStore.set(AUTH_COOKIE_NAME, "", getClearSessionCookieOptions());
-  return NextResponse.json({ success: true });
+export async function POST(request) {
+  try {
+    const result = await getAuth().api.signOut({ headers: request.headers, asResponse: true });
+    return clearLegacySession(withAuthCookies(result, { success: true }));
+  } catch (error) {
+    console.error("POST /api/auth/logout error:", error);
+    return clearLegacySession(NextResponse.json({ success: true }));
+  }
 }
