@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/server/db";
 import { publicReturnView } from "@/lib/server/storefront/returns";
 import { findOrderByReference, orderReference } from "@/lib/server/storefront/account";
 import { parseDataUrl, saveUpload } from "@/lib/server/storage";
+import { notifyReturnRequest } from "@/lib/server/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,8 @@ export async function POST(request) {
         ],
       },
     });
+
+    after(() => notifyReturnRequest(row.id, { notifyAdmin: true }));
 
     return NextResponse.json(
       { success: true, returnId: row.id, message: "Return request submitted successfully." },

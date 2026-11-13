@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/server/db";
 import { notifyOrderEvent } from "@/lib/server/notifications";
 import { findOrderByReference, orderReference } from "@/lib/server/storefront/account";
@@ -131,7 +131,8 @@ export async function POST(request) {
       },
     });
 
-    notifyOrderEvent(order.id, "ORDER_CANCELLED", { notifyAdmin: true }).catch(() => {});
+    // after() keeps the function alive until the emails are sent; a bare promise is dropped on serverless.
+    after(() => notifyOrderEvent(order.id, "ORDER_CANCELLED", { notifyAdmin: true }));
 
     return NextResponse.json(
       {

@@ -1,12 +1,14 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { after } from "next/server"
 import { z } from "zod"
 
 import { Prisma } from "@/generated/prisma/client"
 import { assertPermission, permissionErrorMessage } from "@/lib/server/dal/auth"
 import { parseTimeline, type RequestTimelineEntry } from "@/lib/server/dal/returns"
 import { getPrisma } from "@/lib/server/db"
+import { notifyReturnRequest } from "@/lib/server/notifications"
 import {
   CANCELLATION_STATUSES,
   CANCELLATION_STATUS_LABELS,
@@ -96,6 +98,7 @@ export async function updateReturnRequestAction(input: unknown) {
       return { statusChanged }
     })
     revalidateReturnPaths()
+    if (result.statusChanged) after(() => notifyReturnRequest(id))
     return { success: true as const, statusChanged: result.statusChanged }
   } catch (error) {
     return { success: false as const, message: mutationError(error) }

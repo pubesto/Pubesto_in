@@ -56,8 +56,22 @@ function getSmtpTransport() {
       user: env.SMTP_USER,
       pass: env.SMTP_PASSWORD,
     },
+    // Fail fast instead of holding a serverless function open until it is killed.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   })
   return smtpTransport
+}
+
+/** Network-level failures worth one more attempt; rejected logins or recipients are not. */
+function isTransientSmtpError(error: unknown) {
+  const code = (error as { code?: string } | null)?.code ?? ""
+  const responseCode = (error as { responseCode?: number } | null)?.responseCode ?? 0
+  return (
+    ["ECONNECTION", "ECONNRESET", "ETIMEDOUT", "ESOCKET", "EPIPE", "EDNS", "ENOTFOUND"].includes(code) ||
+    (responseCode >= 400 && responseCode < 500)
+  )
 }
 
 async function sendViaResend(message: EmailMessage): Promise<DeliveryResult> {
@@ -94,7 +108,7 @@ async function sendViaResend(message: EmailMessage): Promise<DeliveryResult> {
 
 async function sendViaSmtp(message: EmailMessage): Promise<DeliveryResult> {
   const env = getEmailEnv()
-  const info = await getSmtpTransport().sendMail({
+  const mail = {
     from: env.EMAIL_FROM,
     to: message.to,
     bcc: bccFor(message),
@@ -102,8 +116,19 @@ async function sendViaSmtp(message: EmailMessage): Promise<DeliveryResult> {
     html: message.html,
     text: message.text,
     replyTo: message.replyTo ?? env.EMAIL_REPLY_TO,
-  })
-  return { status: "SENT", providerId: info.messageId }
+  }
+  try {
+    const info = await getSmtpTransport().sendMail(mail)
+    return { status: "SENT", providerId: info.messageId }
+  } catch (error) {
+    if (!isTransientSmtpError(error)) throw error
+    // A reused connection may have been dropped by the server: reconnect and retry once.
+    smtpTransport?.close()
+    smtpTransport = undefined
+    await new Promise((resolve) => setTimeout(resolve, 1_500))
+    const info = await getSmtpTransport().sendMail(mail)
+    return { status: "SENT", providerId: info.messageId }
+  }
 }
 
 /**

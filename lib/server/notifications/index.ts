@@ -6,18 +6,21 @@ import { getEmailEnv, getSiteEnv, getSiteUrl, getWhatsAppEnv } from "@/lib/serve
 
 import { sendEmail, type DeliveryResult } from "./email"
 import {
-  renderAdminNewOrderEmail,
+  renderAdminOrderEmail,
   renderAdminOrderWhatsApp,
+  renderAdminReturnEmail,
   renderAuthEmail,
   renderContactAcknowledgementEmail,
   renderContactAdminEmail,
   renderDraftOrderEmail,
   renderOrderEmail,
   renderOrderWhatsApp,
+  renderReturnEmail,
   type AuthEmailKind,
   type OrderNotificationEvent,
   type OrderSnapshot,
   type OrderSnapshotAddress,
+  type ReturnSnapshot,
   type TemplateContext,
 } from "./templates"
 import { getWhatsAppTemplateName, normalizeWhatsAppNumber, sendWhatsAppMessage } from "./whatsapp"
@@ -128,6 +131,9 @@ async function loadOrderSnapshot(orderId: string): Promise<OrderSnapshot | null>
       paymentMethod: true,
       shippingMethod: true,
       shippingAddress: true,
+      courier: true,
+      trackingNumber: true,
+      trackingUrl: true,
       createdAt: true,
       user: { select: { id: true, name: true, phone: true } },
       items: {
@@ -164,6 +170,9 @@ async function loadOrderSnapshot(orderId: string): Promise<OrderSnapshot | null>
       total: Number(item.total),
     })),
     shippingAddress: address,
+    courier: order.courier,
+    trackingNumber: order.trackingNumber,
+    trackingUrl: order.trackingUrl,
   }
 }
 
@@ -178,8 +187,8 @@ const EVENT_TO_WHATSAPP_KEY: Record<
 }
 
 /**
- * Customer email + WhatsApp for one order lifecycle event, plus admin alerts
- * for new storefront orders.
+ * Customer email + WhatsApp for one order lifecycle event, plus an admin alert
+ * (new order, or cancellation when the event is ORDER_CANCELLED) on request.
  */
 export async function notifyOrderEvent(
   orderId: string,
@@ -231,23 +240,28 @@ export async function notifyOrderEvent(
     }
 
     if (options.notifyAdmin) {
-      await notifyAdminNewOrder(order, orderId, ctx)
+      await notifyAdminOrder(order, orderId, ctx, event === "ORDER_CANCELLED" ? "CANCELLED" : "NEW")
     }
   } catch (error) {
     console.error(`[notifications] notifyOrderEvent(${event}) failed for ${orderId}`, error)
   }
 }
 
-async function notifyAdminNewOrder(order: OrderSnapshot, orderId: string, ctx: TemplateContext) {
+async function notifyAdminOrder(
+  order: OrderSnapshot,
+  orderId: string,
+  ctx: TemplateContext,
+  kind: "NEW" | "CANCELLED",
+) {
   const emailEnv = getEmailEnv()
   const whatsappEnv = getWhatsAppEnv()
 
   if (emailEnv.ADMIN_NOTIFICATION_EMAIL) {
-    const email = renderAdminNewOrderEmail(order, ctx)
+    const email = renderAdminOrderEmail(order, ctx, kind)
     await recordAndSend(
       {
         channel: "EMAIL",
-        template: "ADMIN_NEW_ORDER",
+        template: kind === "NEW" ? "ADMIN_NEW_ORDER" : "ADMIN_ORDER_CANCELLED",
         recipient: emailEnv.ADMIN_NOTIFICATION_EMAIL,
         subject: email.subject,
         orderId,
@@ -263,7 +277,8 @@ async function notifyAdminNewOrder(order: OrderSnapshot, orderId: string, ctx: T
     )
   }
 
-  const adminNumber = normalizeWhatsAppNumber(whatsappEnv.WHATSAPP_ADMIN_NUMBER)
+  // The approved WhatsApp admin template is worded for new orders only.
+  const adminNumber = kind === "NEW" ? normalizeWhatsAppNumber(whatsappEnv.WHATSAPP_ADMIN_NUMBER) : null
   if (adminNumber) {
     const wa = renderAdminOrderWhatsApp(order, ctx)
     await recordAndSend(
@@ -392,6 +407,74 @@ export async function notifyContactMessage(messageId: string) {
     )
   } catch (error) {
     console.error(`[notifications] contact message ${messageId} failed`, error)
+  }
+}
+
+/**
+ * Emails the customer the latest status of their return request (the newest
+ * timeline entry), and optionally alerts the store about a new request.
+ */
+export async function notifyReturnRequest(returnId: string, options: { notifyAdmin?: boolean } = {}) {
+  try {
+    const row = await getPrisma().returnRequest.findUnique({ where: { id: returnId } })
+    if (!row) return
+
+    const timeline = Array.isArray(row.timeline) ? row.timeline : []
+    const latest = timeline[timeline.length - 1]
+    const entry =
+      latest && typeof latest === "object" && !Array.isArray(latest) ? (latest as Record<string, unknown>) : {}
+    const snapshot: ReturnSnapshot = {
+      id: row.id,
+      orderRef: row.orderRef,
+      customerName: row.customerName,
+      customerEmail: row.customerEmail,
+      customerPhone: row.customerPhone,
+      productName: row.productName,
+      reason: row.reason,
+      reasonText: row.reasonText,
+      status: row.status,
+      label: typeof entry.label === "string" && entry.label ? entry.label : "Return request update",
+      note: typeof entry.note === "string" && entry.note ? entry.note : "There is an update on your return request.",
+    }
+
+    const ctx = templateContext()
+    const email = renderReturnEmail(snapshot, ctx)
+    await recordAndSend(
+      {
+        channel: "EMAIL",
+        template: `RETURN_${row.status.toUpperCase()}`,
+        recipient: row.customerEmail,
+        subject: email.subject,
+        orderId: row.orderId,
+        payload: { returnId },
+      },
+      () => sendEmail({ to: row.customerEmail, subject: email.subject, html: email.html, text: email.text }),
+    )
+
+    if (options.notifyAdmin) {
+      const adminRecipient = getEmailEnv().ADMIN_NOTIFICATION_EMAIL ?? ctx.supportEmail
+      const adminEmail = renderAdminReturnEmail(snapshot, ctx)
+      await recordAndSend(
+        {
+          channel: "EMAIL",
+          template: "ADMIN_RETURN_REQUEST",
+          recipient: adminRecipient,
+          subject: adminEmail.subject,
+          orderId: row.orderId,
+          payload: { returnId },
+        },
+        () =>
+          sendEmail({
+            to: adminRecipient,
+            subject: adminEmail.subject,
+            html: adminEmail.html,
+            text: adminEmail.text,
+            replyTo: row.customerEmail,
+          }),
+      )
+    }
+  } catch (error) {
+    console.error(`[notifications] return ${returnId} email failed`, error)
   }
 }
 
