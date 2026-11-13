@@ -413,7 +413,7 @@ export async function sendAuthEmail(
         subject: email.subject,
         userId: input.userId,
       },
-      () => sendEmail({ to: input.email, subject: email.subject, html: email.html, text: email.text }),
+      () => sendEmail({ to: input.email, subject: email.subject, html: email.html, text: email.text, bcc: false }),
     )
   } catch (error) {
     console.error(`[notifications] auth email ${kind} failed`, error)

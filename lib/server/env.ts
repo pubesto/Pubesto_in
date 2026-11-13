@@ -45,6 +45,8 @@ const optionalString = z
 const emailEnvSchema = z.object({
   EMAIL_FROM: optionalString,
   EMAIL_REPLY_TO: optionalString,
+  /** Comma-separated addresses blind-copied on every non-auth email. */
+  EMAIL_BCC: optionalString,
   ADMIN_NOTIFICATION_EMAIL: optionalString,
   RESEND_API_KEY: optionalString,
   SMTP_HOST: optionalString,

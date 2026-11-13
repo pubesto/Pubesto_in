@@ -10,6 +10,8 @@ export type EmailMessage = {
   html: string
   text?: string
   replyTo?: string
+  /** Set false for emails carrying private links (password reset, verification). */
+  bcc?: boolean
 }
 
 export type DeliveryResult = {
@@ -30,6 +32,16 @@ function resolveProvider(): EmailProvider {
 
 export function isEmailConfigured() {
   return resolveProvider() !== null
+}
+
+/** EMAIL_BCC addresses, minus any that are already the recipient. */
+function bccFor(message: EmailMessage): string[] {
+  if (message.bcc === false) return []
+  const to = message.to.trim().toLowerCase()
+  return (getEmailEnv().EMAIL_BCC ?? "")
+    .split(",")
+    .map((address) => address.trim())
+    .filter((address) => address && address.toLowerCase() !== to)
 }
 
 let smtpTransport: nodemailer.Transporter | undefined
@@ -59,6 +71,7 @@ async function sendViaResend(message: EmailMessage): Promise<DeliveryResult> {
     body: JSON.stringify({
       from: env.EMAIL_FROM,
       to: [message.to],
+      ...(bccFor(message).length ? { bcc: bccFor(message) } : {}),
       subject: message.subject,
       html: message.html,
       text: message.text,
@@ -84,6 +97,7 @@ async function sendViaSmtp(message: EmailMessage): Promise<DeliveryResult> {
   const info = await getSmtpTransport().sendMail({
     from: env.EMAIL_FROM,
     to: message.to,
+    bcc: bccFor(message),
     subject: message.subject,
     html: message.html,
     text: message.text,
