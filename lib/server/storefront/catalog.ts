@@ -80,6 +80,9 @@ export type StorefrontProduct = {
   variantId: string | null
   sku: string
   videoUrl: string | null
+  /** Admin → product → Search engine listing; empty = fall back to title/description. */
+  seoTitle: string
+  seoDescription: string
 }
 
 export type StorefrontCategory = {
@@ -305,6 +308,8 @@ async function loadCatalog() {
         variantId: primary.id,
         sku: primary.sku,
         videoUrl: content.videoUrl || null,
+        seoTitle: content.seoTitle,
+        seoDescription: content.seoDescription,
       }
     })
 

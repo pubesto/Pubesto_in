@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-import { trackAddToCart, trackInitiateCheckout } from "../lib/meta-pixel";
+import { trackAddToCart } from "../lib/meta-pixel";
 import { syncCartAction } from "../app/actions/cart";
 import { flushAnalytics, track } from "../lib/analytics-client";
 
@@ -298,9 +298,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       (sum, item) => sum + getCartItemTotalPrice(item.product || item, item.quantity),
       0
     );
-    const discount = currentMethod === "prepaid" ? Math.round((itemsTotal * PREPAID_DISCOUNT_PERCENT) / 100) : 0;
-    const shipping = itemsTotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
-    trackInitiateCheckout(activeItems, Math.max(0, itemsTotal - discount + shipping));
+    // Meta InitiateCheckout fires on the /checkout page itself (app/(store)/checkout/page.jsx).
     track("BEGIN_CHECKOUT", { payload: { items: activeItems.length, value: itemsTotal } });
 
     try {

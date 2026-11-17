@@ -76,7 +76,10 @@ export default function Footer() {
               <li><Link href="/shop" prefetch={false}>All products</Link></li>
               {categories.slice(0, 6).map((category) => (
                 <li key={category.name}>
-                  <Link href={`/shop?category=${encodeURIComponent(category.name)}`} prefetch={false}>
+                  <Link
+                    href={category.slug ? `/collections/${category.slug}` : `/shop?category=${encodeURIComponent(category.name)}`}
+                    prefetch={false}
+                  >
                     {category.label || category.name}
                   </Link>
                 </li>

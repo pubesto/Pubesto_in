@@ -8,7 +8,6 @@ import { ChevronRight, PartyPopper, ShieldCheck, ShoppingBag, Truck, X, Zap } fr
 import { useStore } from "./StoreContext";
 import { QuantityStepper } from "./ProductCard";
 import { formatINR } from "../lib/utils";
-import { trackInitiateCheckout } from "../lib/meta-pixel";
 
 const FREE_SHIPPING_THRESHOLD = 500;
 
@@ -100,8 +99,6 @@ export default function CartDrawer() {
 
   async function handleCheckout() {
     if (!isLoggedIn) {
-      // Count the checkout intent now; the login step would otherwise hide it from Meta.
-      trackInitiateCheckout(cartItems, cartFinalTotal);
       setIsCartOpen(false);
       router.push(`/account/login?mode=signup&redirect=${encodeURIComponent("/cart")}`);
       return;

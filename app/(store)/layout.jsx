@@ -14,7 +14,7 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-body",
 });
 
-const metaPixelIds = ["1229284689266211", "27881346908132910"];
+import { META_PIXEL_ID } from "@/lib/meta-config";
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
@@ -25,7 +25,7 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-${metaPixelIds.map((pixelId) => `fbq('init', '${pixelId}');`).join("\n")}
+fbq('init', '${META_PIXEL_ID}');
 `;
 
 export const metadata = {
@@ -96,16 +96,13 @@ export default async function RootLayout({ children }) {
           }}
         />
         <noscript>
-          {metaPixelIds.map((pixelId) => (
-            <img
-              key={pixelId}
-              height="1"
-              width="1"
-              style={{ display: "none" }}
-              src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          ))}
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
         </noscript>
         <MetaPixelRouteTracker />
         {/* Dashboard → Analytics: traffic, funnel, recordings, heatmaps */}

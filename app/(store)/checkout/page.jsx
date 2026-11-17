@@ -10,7 +10,7 @@ import {
   getCheckoutSummaryAction,
   placeOrderAction,
 } from "@/app/actions/checkout";
-import { trackPurchase } from "@/lib/meta-pixel";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 import { flushAnalytics, getSessionId } from "@/lib/analytics-client";
 import { formatINR } from "@/lib/utils";
 import { INDIAN_STATES } from "@/lib/indian-states";
@@ -68,6 +68,7 @@ export default function CheckoutPage() {
   const [placed, setPlaced] = useState(null);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const prefilledRef = useRef(false);
+  const initiateCheckoutSentRef = useRef(false);
 
   // Items come from "Buy now" / "Proceed to pay" (sessionStorage) or the cart.
   useEffect(() => {
@@ -159,6 +160,20 @@ export default function CheckoutPage() {
     };
   }, [lines, paymentMethod, promoCode, form.state]);
 
+  // Meta InitiateCheckout: once per page load, as soon as the shopper (logged in) sees a
+  // priced checkout. Reloads within 30 min are de-duplicated inside trackInitiateCheckout.
+  useEffect(() => {
+    if (initiateCheckoutSentRef.current || placed) return;
+    if (isAuthLoading || !isLoggedIn || !items.length) return;
+    if (!summary && !summaryError) return; // wait for the server price
+    initiateCheckoutSentRef.current = true;
+    const fallbackValue = items.reduce(
+      (sum, item) => sum + (Number((item.product || item).salePrice) || 0) * (Number(item.quantity) || 1),
+      0
+    );
+    trackInitiateCheckout(items, summary?.total ?? fallbackValue);
+  }, [isAuthLoading, isLoggedIn, items, summary, summaryError, placed]);
+
   function update(field) {
     return (event) => {
       setSelectedAddressId(null);
@@ -182,12 +197,14 @@ export default function CheckoutPage() {
     return "";
   }
 
-  function finish(result, total) {
+  function finish(result, { paid }) {
     try {
+      // Meta Purchase only after Razorpay has confirmed (and our server has verified) the
+      // payment; value = amount actually paid. COD orders are not sent as Purchase.
       const firedKey = `pubesto_pixel_purchase_${result.orderId}`;
-      if (!sessionStorage.getItem(firedKey)) {
+      if (paid && !sessionStorage.getItem(firedKey)) {
         sessionStorage.setItem(firedKey, "1");
-        trackPurchase(items, total);
+        trackPurchase(items, result.total, { orderId: result.orderId });
       }
       sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
     } catch {
@@ -239,7 +256,7 @@ export default function CheckoutPage() {
           setFormError(result.message);
           return;
         }
-        finish(result, result.total);
+        finish(result, { paid: false });
         return;
       }
 
@@ -276,7 +293,7 @@ export default function CheckoutPage() {
               razorpaySignature: response.razorpay_signature,
             });
             if (result.success) {
-              finish(result, result.total);
+              finish(result, { paid: true });
             } else {
               setFormError(result.message);
             }
