@@ -15,7 +15,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Pubesto Admin",
   robots: { index: false, follow: false },
-  icons: { icon: "/favicon.png" },
+  icons: { icon: "/favicon.png?v=2", shortcut: "/favicon.ico?v=2", apple: "/apple-touch-icon.png?v=2" },
 }
 
 // The dashboard has its own root layout so its Tailwind theme never mixes with

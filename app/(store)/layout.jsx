@@ -32,9 +32,9 @@ export const metadata = {
   title: "Pubesto | Cooling gadgets, bottles & everyday essentials",
   description: "Pubesto home decor, lunch storage, water bottles, and daily essentials.",
   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    icon: [{ url: "/icon.svg?v=2", type: "image/svg+xml" }, { url: "/favicon.png?v=2", type: "image/png" }],
+    shortcut: "/favicon.ico?v=2",
+    apple: "/apple-touch-icon.png?v=2",
   },
   verification: {
     google: "kPT-8lUP7LJr9ikYrHRaKP2SaOweJnFn6PydX-NFOmk",

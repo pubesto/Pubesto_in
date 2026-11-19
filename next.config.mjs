@@ -18,11 +18,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/favicon.ico',
-        destination: '/icon.svg',
-        permanent: false,
-      },
-      {
         source: '/notebook-bottle',
         destination: '/product/notebook-bottle',
         permanent: false,
