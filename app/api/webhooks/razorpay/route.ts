@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getPrisma } from "@/lib/server/db"
 import { getRazorpayEnv } from "@/lib/server/env"
 import { notifyOrderEvent } from "@/lib/server/notifications"
+import { readSavedMetaContext, sendPurchaseEvent } from "@/lib/server/meta-purchase"
 import { placeStorefrontOrder } from "@/lib/server/services/checkout"
 import { verifyWebhookSignature } from "@/lib/server/services/razorpay"
 import { checkoutInputSchema } from "@/lib/validations/checkout"
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
             ...(order.status === "PENDING" ? { status: "CONFIRMED" } : {}),
           },
         })
+        await sendPurchaseEvent(order.id)
       }
       return NextResponse.json({ status: "ok" })
     }
@@ -73,6 +75,8 @@ export async function POST(req: NextRequest) {
     })
     await prisma.pendingCheckout.deleteMany({ where: { razorpayOrderId } })
     await notifyOrderEvent(placed.id, "ORDER_PLACED", { notifyAdmin: true })
+    // The shopper closed the tab after paying, so no browser Purchase was sent: send it here.
+    await sendPurchaseEvent(placed.id, readSavedMetaContext(pending.payload))
 
     return NextResponse.json({ status: "ok" })
   } catch (error) {

@@ -34,13 +34,9 @@ export default function ProductCard({ product, index = 0 }) {
   const flag = isNewArrival(product) ? "new" : isTopBestseller(product) ? "bestseller" : null;
 
   return (
-    <motion.article
-      className="pb-card"
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45, delay: Math.min(index, 8) * 0.04, ease: [0.22, 1, 0.36, 1] }}
-    >
+    // Fade-in is pure CSS: cards must be visible in the server HTML even if
+    // client JavaScript is slow or fails, so no JS-driven initial opacity:0.
+    <article className="pb-card pb-card-in" style={{ "--pb-card-delay": `${Math.min(index, 8) * 40}ms` }}>
       <Link className="pb-card-media" href={href} prefetch={false} aria-label={product.name}>
         <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         {outOfStock ? (
@@ -86,6 +82,6 @@ export default function ProductCard({ product, index = 0 }) {
           )}
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

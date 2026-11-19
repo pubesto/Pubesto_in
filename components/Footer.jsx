@@ -46,11 +46,7 @@ export default function Footer() {
             <Link href="/" aria-label="Pubesto home" prefetch={false}>
               <Logo tone="light" tagline />
             </Link>
-            <p>
-              Practical picks, not clutter. Pubesto curates cooling gadgets, bottles, lunch storage and everyday
-              essentials for Indian homes.
-            </p>
-            <form className="pb-newsletter" onSubmit={handleSubscribe}>
+            <form className="pb-newsletter" style={{ marginTop: 18 }} onSubmit={handleSubscribe}>
               <input
                 type="email"
                 placeholder="Your email for deals"
@@ -77,7 +73,7 @@ export default function Footer() {
               {categories.slice(0, 6).map((category) => (
                 <li key={category.name}>
                   <Link
-                    href={category.slug ? `/collections/${category.slug}` : `/shop?category=${encodeURIComponent(category.name)}`}
+                    href={`/shop?category=${encodeURIComponent(category.name)}`}
                     prefetch={false}
                   >
                     {category.label || category.name}

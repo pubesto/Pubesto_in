@@ -390,6 +390,10 @@ export default function Header() {
   const store = useStore();
   const hydrated = useHydrated();
   const isLoggedIn = hydrated && store.isLoggedIn;
+  const pathname = usePathname();
+  // Product pages carry their own sticky Add/Buy bar on mobile, so the mobile search row
+  // and bottom tab bar are left out there to keep the page focused on the product.
+  const isProductPage = pathname?.startsWith("/product/");
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 8);
@@ -438,15 +442,17 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="pb-header-search-row pb-mobile-only" style={{ display: "block" }}>
-            <SearchBar />
-          </div>
+          {!isProductPage ? (
+            <div className="pb-header-search-row pb-mobile-only" style={{ display: "block" }}>
+              <SearchBar />
+            </div>
+          ) : null}
 
           <CategoryNav />
         </div>
       </header>
 
-      <TabBar />
+      {!isProductPage ? <TabBar /> : null}
     </>
   );
 }

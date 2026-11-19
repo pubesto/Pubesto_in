@@ -658,6 +658,11 @@ a:hover .pb-logo-o {
     display: flex !important;
   }
 
+  /* .pb-mobile-only forces flex; the tab bar is a 4-column grid. */
+  .pb-tabbar.pb-mobile-only {
+    display: grid !important;
+  }
+
   :root {
     --pb-header-h: 60px;
   }
@@ -3271,11 +3276,11 @@ a:hover .pb-logo-o {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(64px + env(safe-area-inset-bottom));
+  bottom: 0;
   z-index: 63;
   background: #fff;
   border-top: 1px solid var(--pb-line);
-  padding: 10px 16px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
   display: none;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -3332,8 +3337,9 @@ a:hover .pb-logo-o {
     display: none;
   }
 
+  /* No tab bar on product pages: only the sticky Add/Buy bar sits at the bottom. */
   body.pb-has-sticky-buy {
-    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
 
   .pb-trust {
@@ -3506,6 +3512,16 @@ a:hover .pb-logo-o {
   .pb-footer-about {
     grid-column: 1 / -1;
   }
+
+  /* Bigger tap targets for footer links on phones. */
+  .pb-footer-links {
+    gap: 2px;
+  }
+
+  .pb-footer-links a {
+    min-height: 40px;
+    padding: 4px 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3527,4 +3543,185 @@ h1,
 h2,
 h3 {
   font-style: normal !important;
+}
+
+/* ---------- PDP reviews ---------- */
+.pb-review-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px 32px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid var(--pb-line-2);
+  border-radius: 18px;
+}
+
+.pb-review-top > .pb-btn {
+  margin-left: auto;
+}
+
+.pb-rating-bars {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+  flex: 1;
+  max-width: 360px;
+}
+
+.pb-rating-bar {
+  display: grid;
+  grid-template-columns: 34px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--pb-muted);
+}
+
+.pb-rating-bar > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--pb-ink-2);
+  font-weight: 700;
+}
+
+.pb-rating-bar > span:first-child svg {
+  color: #f5a524;
+}
+
+.pb-rating-bar i {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pb-line-2);
+  overflow: hidden;
+}
+
+.pb-rating-bar b {
+  display: block;
+  height: 100%;
+  background: #f5a524;
+  border-radius: inherit;
+}
+
+.pb-review-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.pb-review-form {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid var(--pb-line-2);
+  border-radius: 18px;
+  max-width: 640px;
+}
+
+.pb-review-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.pb-review-form .pb-opt-label {
+  margin: 0;
+}
+
+.pb-review-form input,
+.pb-review-form textarea {
+  width: 100%;
+  border: 1px solid var(--pb-line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 16px;
+  background: #fff;
+  resize: vertical;
+}
+
+.pb-review-form input:focus,
+.pb-review-form textarea:focus {
+  outline: none;
+  border-color: var(--pb-sea);
+}
+
+.pb-review-form > .pb-btn {
+  justify-self: start;
+}
+
+.pb-star-input {
+  display: flex;
+  gap: 4px;
+  color: #f5a524;
+}
+
+.pb-star-input button {
+  border: 0;
+  background: none;
+  padding: 2px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.pb-review-form-note {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pb-review-form-note.is-ok {
+  color: var(--pb-sea);
+}
+
+.pb-review-form-note.is-error {
+  margin: 0;
+  color: var(--pb-red);
+}
+
+@media (max-width: 900px) {
+  .pb-review-top {
+    padding: 16px;
+  }
+
+  .pb-review-top > .pb-btn {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .pb-rating-bars {
+    max-width: none;
+    min-width: 100%;
+  }
+
+  .pb-review-list {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+/* Product card entrance: CSS only, so cards never stay hidden waiting on JS. */
+@keyframes pb-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pb-card-in {
+  animation: pb-card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--pb-card-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-card-in {
+    animation: none;
+  }
 }

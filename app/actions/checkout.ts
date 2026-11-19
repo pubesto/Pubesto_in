@@ -8,6 +8,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { formatOrderReference } from "@/lib/checkout-rules"
 import { getPrisma } from "@/lib/server/db"
 import { notifyOrderEvent } from "@/lib/server/notifications"
+import { captureMetaContext, readSavedMetaContext, sendPurchaseEvent } from "@/lib/server/meta-purchase"
 import {
   calculateCheckoutSummary,
   CheckoutError,
@@ -158,10 +159,13 @@ export async function createRazorpayOrderAction(input: unknown): Promise<CreateR
       },
     })
 
+    // `_meta` (Meta cookies / IP / user agent) lets the Razorpay webhook send a well-matched
+    // Purchase even if the shopper never returns to the site. The checkout schema ignores it.
+    const _meta = await captureMetaContext()
     await getPrisma().pendingCheckout.create({
       data: {
         razorpayOrderId: rzpOrder.id,
-        payload: data as unknown as Prisma.InputJsonValue,
+        payload: { ...data, _meta } as unknown as Prisma.InputJsonValue,
         amount: new Prisma.Decimal(summary.total),
       },
     })
@@ -233,6 +237,10 @@ export async function confirmRazorpayOrderAction(input: unknown): Promise<PlaceO
       after(() => notifyOrderEvent(order.id, "ORDER_PLACED", { notifyAdmin: true }))
       revalidateAfterOrder(order.userId)
     }
+    // Meta Purchase from the server, so it counts even if the browser copy is blocked or lost.
+    // Same event_id as the browser and the webhook, so Meta keeps one.
+    const metaContext = { ...readSavedMetaContext(pending?.payload), ...(await captureMetaContext()) }
+    after(() => sendPurchaseEvent(order.id, metaContext))
 
     return {
       success: true,
