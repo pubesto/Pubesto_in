@@ -63,6 +63,19 @@ export function toStorefrontReview(row: ReviewRow): StorefrontReview {
   }
 }
 
+/**
+ * Old product URLs (from the Shopify era) that still have reviews attached.
+ * Keep in sync with the product redirects in next.config.mjs.
+ */
+const LEGACY_REVIEW_SLUGS: Record<string, string[]> = {
+  "notebook-bottle": ["b-65-do-your-best-notebook-bottle"],
+}
+
+function reviewSlugsFor(productSlug: string) {
+  const slug = productSlug.trim().toLowerCase()
+  return [slug, ...(LEGACY_REVIEW_SLUGS[slug] ?? [])]
+}
+
 /** Published reviews for the homepage (scope "home") or one product. */
 export async function listPublishedReviews({ scope, productSlug }: { scope?: string | null; productSlug?: string | null }) {
   const rows = await getPrisma().productReview.findMany({
@@ -71,7 +84,7 @@ export async function listPublishedReviews({ scope, productSlug }: { scope?: str
       ...(scope === "home"
         ? { showOnHomepage: true }
         : productSlug
-          ? { productSlug: productSlug.trim().toLowerCase() }
+          ? { productSlug: { in: reviewSlugsFor(productSlug) } }
           : {}),
     },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],

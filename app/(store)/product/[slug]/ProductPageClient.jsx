@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  BadgeCheck,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -103,7 +102,7 @@ const PRODUCT_FAQS = [
   },
 ];
 
-function RatingBreakdown({ reviews }) {
+function RatingBreakdown({ reviews, active, onSelect }) {
   const counts = [5, 4, 3, 2, 1].map((star) => ({
     star,
     count: reviews.filter((r) => Math.round(r.rating) === star).length,
@@ -113,11 +112,19 @@ function RatingBreakdown({ reviews }) {
   return (
     <div className="pb-rating-bars">
       {counts.map(({ star, count }) => (
-        <div key={star} className="pb-rating-bar">
-          <span>{star} <Star size={12} fill="currentColor" strokeWidth={0} /></span>
+        <button
+          key={star}
+          type="button"
+          className={`pb-rating-bar ${active === star ? "is-active" : ""}`}
+          onClick={() => onSelect(active === star ? null : star)}
+          disabled={!count}
+          aria-pressed={active === star}
+          aria-label={`Show ${star} star reviews (${count})`}
+        >
+          <Stars value={star} size={13} />
           <i><b style={{ width: `${(count / total) * 100}%` }} /></i>
           <span>{count}</span>
-        </div>
+        </button>
       ))}
     </div>
   );
@@ -243,8 +250,11 @@ function ProductPageContent() {
   const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [videoSoundOn, setVideoSoundOn] = useState(false);
   const [reviewData, setReviewData] = useState({ reviews: [], summary: null });
+  const [storeReviews, setStoreReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [visibleReviews, setVisibleReviews] = useState(6);
+  const [reviewSort, setReviewSort] = useState("recent");
+  const [starFilter, setStarFilter] = useState(null);
 
   const colors = useMemo(
     () => (Array.isArray(product?.colors) ? product.colors.filter((c) => c && c.name && c.hex) : []),
@@ -287,7 +297,24 @@ function ProductPageContent() {
     let active = true;
     fetch(`/api/reviews?productSlug=${encodeURIComponent(product.slug)}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => active && data && setReviewData({ reviews: data.reviews || [], summary: data.summary }))
+      .then((data) => {
+        if (!active || !data) return null;
+        setReviewData({ reviews: data.reviews || [], summary: data.summary });
+        setStoreReviews([]);
+        // No reviews for this product yet: load real reviews of other Pubesto products,
+        // shown separately and labelled with the product each one is about.
+        if (data.summary?.count) return null;
+        return fetch("/api/reviews")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((all) => {
+            if (!active || !all) return;
+            setStoreReviews(
+              (all.reviews || [])
+                .filter((r) => r.rating >= 4 && r.productSlug && r.productSlug !== product.slug)
+                .slice(0, 6)
+            );
+          });
+      })
       .catch(() => {});
     return () => {
       active = false;
@@ -348,8 +375,15 @@ function ProductPageContent() {
 
   const apiReviews = reviewData.reviews;
   const reviews = apiReviews.length
-    ? apiReviews.map((r) => ({ id: r.id, name: r.customerName, text: r.text, rating: r.rating, verified: true, date: r.createdAt }))
+    ? apiReviews.map((r) => ({ id: r.id, name: r.customerName, text: r.text, rating: r.rating, date: r.createdAt }))
     : (product.reviewsList || []).map((r, i) => ({ id: i, name: r.name, text: r.text, rating: null }));
+  const shownReviews = reviews
+    .filter((r) => !starFilter || Math.round(r.rating) === starFilter)
+    .sort((a, b) => {
+      if (reviewSort === "highest") return (b.rating || 0) - (a.rating || 0);
+      if (reviewSort === "lowest") return (a.rating || 0) - (b.rating || 0);
+      return new Date(b.date || 0) - new Date(a.date || 0);
+    });
   const ratingValue = reviewData.summary?.count ? reviewData.summary.averageRating : product.rating;
   const ratingCount = reviewData.summary?.count || product.reviews;
 
@@ -599,41 +633,99 @@ function ProductPageContent() {
           ) : (
             <p style={{ margin: 0, color: "var(--pb-muted)" }}>No reviews yet. Be the first to share your experience.</p>
           )}
-          <RatingBreakdown reviews={reviews.filter((r) => r.rating)} />
+          <RatingBreakdown
+            reviews={reviews.filter((r) => r.rating)}
+            active={starFilter}
+            onSelect={(star) => { setStarFilter(star); setVisibleReviews(6); }}
+          />
           <button className="pb-btn pb-btn-outline" type="button" onClick={() => setShowReviewForm((v) => !v)}>
-            <PenLine size={17} /> {showReviewForm ? "Cancel" : "Write a review"}
+            <PenLine size={17} /> {showReviewForm ? "Cancel review" : "Write a review"}
           </button>
         </div>
         {showReviewForm ? <ReviewForm product={product} /> : null}
         {reviews.length ? (
+          <div className="pb-review-toolbar">
+            <span>
+              {starFilter ? (
+                <>
+                  Showing {shownReviews.length} {starFilter}-star review{shownReviews.length === 1 ? "" : "s"}{" "}
+                  <button type="button" onClick={() => setStarFilter(null)}>Show all</button>
+                </>
+              ) : (
+                <>{reviews.length} review{reviews.length === 1 ? "" : "s"}</>
+              )}
+            </span>
+            {reviews.some((r) => r.rating) ? (
+              <label>
+                <span className="pb-sr-only">Sort reviews</span>
+                <select value={reviewSort} onChange={(e) => setReviewSort(e.target.value)}>
+                  <option value="recent">Most recent</option>
+                  <option value="highest">Highest rating</option>
+                  <option value="lowest">Lowest rating</option>
+                </select>
+              </label>
+            ) : null}
+          </div>
+        ) : null}
+        {shownReviews.length ? (
           <div className="pb-review-list">
-            {reviews.slice(0, visibleReviews).map((review) => (
+            {shownReviews.slice(0, visibleReviews).map((review) => (
               <article key={review.id} className="pb-review">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                  {review.rating ? <Stars value={review.rating} /> : <span />}
-                  {review.date ? (
-                    <small style={{ color: "var(--pb-muted)", fontSize: 12 }}>
-                      {new Date(review.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </small>
-                  ) : null}
-                </div>
-                <p>&ldquo;{review.text}&rdquo;</p>
-                <div className="pb-review-who">
+                <div className="pb-review-who" style={{ borderTop: 0, paddingTop: 0 }}>
                   <span className="pb-avatar">{getInitials(review.name)}</span>
-                  <span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
                     <strong>{review.name}</strong>
-                    {review.verified ? <small><BadgeCheck size={13} /> Verified buyer</small> : null}
+                    {review.date ? (
+                      <small style={{ color: "var(--pb-muted)", fontWeight: 500 }}>
+                        {new Date(review.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </small>
+                    ) : null}
                   </span>
                 </div>
+                {review.rating ? <Stars value={review.rating} /> : null}
+                <p>{review.text}</p>
               </article>
             ))}
           </div>
         ) : null}
-        {reviews.length > visibleReviews ? (
+        {shownReviews.length > visibleReviews ? (
           <div style={{ textAlign: "center", marginTop: 16 }}>
             <button className="pb-btn pb-btn-outline" type="button" onClick={() => setVisibleReviews((n) => n + 6)}>
               Show more reviews
             </button>
+          </div>
+        ) : null}
+        {!reviews.length && storeReviews.length ? (
+          <div className="pb-store-reviews">
+            <h3>What customers say about other Pubesto products</h3>
+            <div className="pb-review-list">
+              {storeReviews.map((review) => {
+                const reviewed = products.find((p) => p.slug === review.productSlug);
+                return (
+                  <article key={review.id} className="pb-review">
+                    <div className="pb-review-who" style={{ borderTop: 0, paddingTop: 0 }}>
+                      <span className="pb-avatar">{getInitials(review.customerName)}</span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <strong>{review.customerName}</strong>
+                        <small style={{ color: "var(--pb-muted)", fontWeight: 500 }}>
+                          {new Date(review.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </small>
+                      </span>
+                    </div>
+                    <Stars value={review.rating} />
+                    <p>{review.text}</p>
+                    <span className="pb-review-about">
+                      Review for{" "}
+                      {reviewed ? (
+                        <Link href={`/product/${reviewed.slug}`} prefetch={false}>{reviewed.name}</Link>
+                      ) : (
+                        review.productName || "another product"
+                      )}
+                    </span>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         ) : null}
       </section>
