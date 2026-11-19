@@ -386,6 +386,9 @@ function ProductPageContent() {
     });
   const ratingValue = reviewData.summary?.count ? reviewData.summary.averageRating : product.rating;
   const ratingCount = reviewData.summary?.count || product.reviews;
+  // This product's own reviews or rating; when there are none, only the labelled
+  // reviews of other Pubesto products are shown (no empty "No reviews yet" box).
+  const hasOwnReviews = reviews.length > 0 || Boolean(ratingValue);
 
   function selectColor(color) {
     if (!color || color.available === false) return;
@@ -615,12 +618,14 @@ function ProductPageContent() {
         </section>
       ) : null}
 
+      {hasOwnReviews || storeReviews.length ? (
       <section className="pb-section" id="reviews">
         <div className="pb-section-head">
           <div>
-            <h2>Customer reviews</h2>
+            <h2>{hasOwnReviews ? "Customer reviews" : "What customers say about Pubesto"}</h2>
           </div>
         </div>
+        {hasOwnReviews ? (
         <div className="pb-review-top">
           {ratingValue ? (
             <div className="pb-rating-summary" style={{ marginBottom: 0 }}>
@@ -630,9 +635,7 @@ function ProductPageContent() {
                 <div style={{ fontSize: 13.5, color: "var(--pb-muted)", marginTop: 4 }}>{ratingCount ? `Based on ${ratingCount} ratings` : null}</div>
               </span>
             </div>
-          ) : (
-            <p style={{ margin: 0, color: "var(--pb-muted)" }}>No reviews yet. Be the first to share your experience.</p>
-          )}
+          ) : null}
           <RatingBreakdown
             reviews={reviews.filter((r) => r.rating)}
             active={starFilter}
@@ -642,7 +645,8 @@ function ProductPageContent() {
             <PenLine size={17} /> {showReviewForm ? "Cancel review" : "Write a review"}
           </button>
         </div>
-        {showReviewForm ? <ReviewForm product={product} /> : null}
+        ) : null}
+        {hasOwnReviews && showReviewForm ? <ReviewForm product={product} /> : null}
         {reviews.length ? (
           <div className="pb-review-toolbar">
             <span>
@@ -697,7 +701,7 @@ function ProductPageContent() {
         ) : null}
         {!reviews.length && storeReviews.length ? (
           <div className="pb-store-reviews">
-            <h3>What customers say about other Pubesto products</h3>
+            {hasOwnReviews ? <h3>What customers say about other Pubesto products</h3> : null}
             <div className="pb-review-list">
               {storeReviews.map((review) => {
                 const reviewed = products.find((p) => p.slug === review.productSlug);
@@ -729,6 +733,7 @@ function ProductPageContent() {
           </div>
         ) : null}
       </section>
+      ) : null}
 
       <section className="pb-section" id="faq">
         <div className="pb-section-head">
