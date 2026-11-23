@@ -25,6 +25,15 @@ const reviewFieldsSchema = z.object({
   showOnHomepage: z.boolean().default(false),
   isPublished: z.boolean().default(true),
   sortOrder: z.coerce.number().int().min(0, "Sort order can't be negative.").max(100000).default(100),
+  /** The day the customer wrote it (e.g. the date of their email or Google review). Blank = keep / today. */
+  reviewDate: z
+    .string()
+    .trim()
+    .default("")
+    .refine((value) => !value || (/^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value))), {
+      message: "Enter a valid review date.",
+    })
+    .refine((value) => !value || Date.parse(value) <= Date.now(), { message: "The review date can't be in the future." }),
 })
 
 const reviewUpdateSchema = reviewFieldsSchema.extend({ id: z.string().min(1) })
@@ -72,6 +81,8 @@ function toData(input: z.infer<typeof reviewFieldsSchema>) {
     showOnHomepage: input.showOnHomepage,
     isPublished: input.isPublished,
     sortOrder: input.sortOrder,
+    // Noon UTC keeps the same calendar day when shown in India.
+    ...(input.reviewDate ? { createdAt: new Date(`${input.reviewDate}T12:00:00Z`) } : {}),
   }
 }
 

@@ -46,6 +46,8 @@ type ReviewForm = {
   showOnHomepage: boolean
   isPublished: boolean
   sortOrder: number
+  /** yyyy-mm-dd; the date the customer wrote the review (email, Google, etc.). */
+  reviewDate: string
 }
 
 const NO_PRODUCT = "__none__"
@@ -60,6 +62,12 @@ const emptyForm: ReviewForm = {
   showOnHomepage: false,
   isPublished: true,
   sortOrder: 100,
+  reviewDate: "",
+}
+
+function todayISO() {
+  const now = new Date()
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 }
 
 const inputClass =
@@ -232,7 +240,7 @@ export function ReviewManager({
 
   const openCreate = () => {
     setEditingId(null)
-    setForm(emptyForm)
+    setForm({ ...emptyForm, reviewDate: todayISO() })
     setEditorOpen(true)
   }
 
@@ -248,6 +256,7 @@ export function ReviewManager({
       showOnHomepage: review.showOnHomepage,
       isPublished: review.isPublished,
       sortOrder: review.sortOrder,
+      reviewDate: review.createdAt.slice(0, 10),
     })
     setEditorOpen(true)
   }
@@ -508,7 +517,7 @@ export function ReviewManager({
           <DialogHeader className="border-b border-black/10 px-5 py-4">
             <DialogTitle>{editingId ? "Edit review" : "Add review"}</DialogTitle>
             <DialogDescription>
-              Leave the product blank for a homepage-only testimonial. Customer images must be a full URL or a site path.
+              Add reviews customers sent you by email, Google, WhatsApp or Instagram. Pick the product the review is about, and set the date the customer wrote it.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(event) => { event.preventDefault(); saveReview() }}>
@@ -560,6 +569,12 @@ export function ReviewManager({
                     </SelectContent>
                   </Select>
                 </div>
+                <label className="grid gap-1.5 text-sm font-medium">
+                  Review date
+                  <input type="date" max={todayISO()} value={form.reviewDate} onChange={(event) => setField("reviewDate", event.target.value)} className={inputClass} />
+                </label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-sm font-medium">
                   Sort order
                   <input type="number" min={0} value={form.sortOrder} onChange={(event) => setField("sortOrder", Number(event.target.value))} className={inputClass} />

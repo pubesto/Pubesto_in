@@ -622,7 +622,10 @@ function ProductPageContent() {
       <section className="pb-section" id="reviews">
         <div className="pb-section-head">
           <div>
-            <h2>{hasOwnReviews ? "Customer reviews" : "What customers say about Pubesto"}</h2>
+            <h2>{hasOwnReviews ? "Customer reviews" : "Reviews of our other products"}</h2>
+            {!hasOwnReviews ? (
+              <p>No reviews for this product yet. These are customer reviews of other Pubesto products; each one names the product it is for.</p>
+            ) : null}
           </div>
         </div>
         {hasOwnReviews ? (
@@ -701,7 +704,7 @@ function ProductPageContent() {
         ) : null}
         {!reviews.length && storeReviews.length ? (
           <div className="pb-store-reviews">
-            {hasOwnReviews ? <h3>What customers say about other Pubesto products</h3> : null}
+            {hasOwnReviews ? <h3>Reviews of our other products</h3> : null}
             <div className="pb-review-list">
               {storeReviews.map((review) => {
                 const reviewed = products.find((p) => p.slug === review.productSlug);
