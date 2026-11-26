@@ -31,7 +31,9 @@ export async function POST(req) {
   }
 
   const { eventName, eventId, eventSourceUrl, customData } = payload || {};
-  if (!ALLOWED_EVENTS.has(eventName) || typeof eventId !== "string" || eventId.length > 100) {
+  // Purchase is only sent by the server when it confirms an order (lib/server/meta-purchase.ts),
+  // so nobody can post a fake sale here.
+  if (!ALLOWED_EVENTS.has(eventName) || eventName === "Purchase" || typeof eventId !== "string" || eventId.length > 100) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 

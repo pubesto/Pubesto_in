@@ -197,18 +197,19 @@ export default function CheckoutPage() {
     return "";
   }
 
-  function finish(result, { paid }) {
+  function finish(result) {
     try {
-      // Meta Purchase only after Razorpay has confirmed (and our server has verified) the
-      // payment; value = amount actually paid. COD orders are not sent as Purchase.
-      const firedKey = `pubesto_pixel_purchase_${result.orderId}`;
-      if (paid && !sessionStorage.getItem(firedKey)) {
-        sessionStorage.setItem(firedKey, "1");
-        trackPurchase(items, result.total, { orderId: result.orderId });
-      }
       sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
     } catch {
       /* storage unavailable */
+    }
+    try {
+      // Meta Purchase once the order is confirmed: Razorpay payment verified by our server
+      // (paid) or COD order placed. value = amount the customer pays. The server sends the
+      // same event (event_id purchase_<reference>) and trackPurchase never fires twice.
+      trackPurchase(items, result.total, { orderReference: result.reference });
+    } catch {
+      /* never let tracking break checkout */
     }
     if (!handoff?.items?.length || handoff.source === "cart") {
       setCartItems([]);
@@ -256,7 +257,7 @@ export default function CheckoutPage() {
           setFormError(result.message);
           return;
         }
-        finish(result, { paid: false });
+        finish(result);
         return;
       }
 
@@ -293,7 +294,7 @@ export default function CheckoutPage() {
               razorpaySignature: response.razorpay_signature,
             });
             if (result.success) {
-              finish(result, { paid: true });
+              finish(result);
             } else {
               setFormError(result.message);
             }

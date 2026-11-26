@@ -350,6 +350,8 @@ model Order {
   trackingUrl     String?
   cancelReason    String?
   cancelledAt     DateTime?
+  /// When the Meta Conversions API "Purchase" was sent, so webhook retries never send it twice.
+  metaPurchaseSentAt DateTime?
   /// Order number shown before the move off Shopify, e.g. "#1009".
   legacyName      String?     @unique
   legacyId        String?     @unique

@@ -8,7 +8,12 @@ import { Prisma } from "@/generated/prisma/client"
 import { formatOrderReference } from "@/lib/checkout-rules"
 import { getPrisma } from "@/lib/server/db"
 import { notifyOrderEvent } from "@/lib/server/notifications"
-import { captureMetaContext, readSavedMetaContext, sendPurchaseEvent } from "@/lib/server/meta-purchase"
+import {
+  captureMetaContext,
+  mergeMetaContext,
+  readSavedMetaContext,
+  sendPurchaseEvent,
+} from "@/lib/server/meta-purchase"
 import {
   calculateCheckoutSummary,
   CheckoutError,
@@ -238,8 +243,8 @@ export async function confirmRazorpayOrderAction(input: unknown): Promise<PlaceO
       revalidateAfterOrder(order.userId)
     }
     // Meta Purchase from the server, so it counts even if the browser copy is blocked or lost.
-    // Same event_id as the browser and the webhook, so Meta keeps one.
-    const metaContext = { ...readSavedMetaContext(pending?.payload), ...(await captureMetaContext()) }
+    // Same event_id as the browser; sendPurchaseEvent sends it at most once per order.
+    const metaContext = mergeMetaContext(await captureMetaContext(), readSavedMetaContext(pending?.payload))
     after(() => sendPurchaseEvent(order.id, metaContext))
 
     return {
@@ -276,6 +281,9 @@ export async function placeOrderAction(input: unknown): Promise<PlaceOrderResult
 
     after(() => notifyOrderEvent(order.id, "ORDER_PLACED", { notifyAdmin: true }))
     revalidateAfterOrder(order.userId)
+    // Meta Purchase for COD (full price). The thank-you screen sends the browser copy.
+    const metaContext = await captureMetaContext()
+    after(() => sendPurchaseEvent(order.id, metaContext))
 
     return {
       success: true,
