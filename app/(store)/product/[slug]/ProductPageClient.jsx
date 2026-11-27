@@ -86,7 +86,7 @@ function DeliveryEstimate() {
 const PRODUCT_FAQS = [
   {
     q: "Is cash on delivery available?",
-    a: "Yes, COD is available across India. Prepaid orders get an extra 10% off.",
+    a: "No, we are a prepaid-only store. Pay securely online with UPI, cards or netbanking and get an extra 10% off.",
   },
   {
     q: "How long does delivery take?",
@@ -594,7 +594,7 @@ function ProductPageContent() {
                 <ul className="pb-highlights">
                   <li><Truck size={17} /> Delivered within 5–7 business days after dispatch. Free shipping above ₹500, otherwise ₹70.</li>
                   <li><RotateCcw size={17} /> Return eligible items within 7 days of delivery. <Link href="/refund-return-policy" style={{ color: "var(--pb-sea)", fontWeight: 700 }}>Policy</Link></li>
-                  <li><Tag size={17} /> Cash on delivery available. Prepaid orders get an extra 10% off.</li>
+                  <li><Tag size={17} /> Pay online with UPI, cards or netbanking and get an extra 10% off.</li>
                 </ul>
               </div>
             </details>

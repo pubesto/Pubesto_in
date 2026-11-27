@@ -51,14 +51,14 @@ export default function CheckoutPage() {
     isLoggedIn,
     isAuthLoading,
     user,
-    paymentMethod: storePaymentMethod,
     setPaymentMethod: setStorePaymentMethod,
     getCartItemDisplayName,
   } = useStore();
 
   const [handoff, setHandoff] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [paymentMethod, setPaymentMethod] = useState(storePaymentMethod || "prepaid");
+  // Cash on delivery is turned off, so checkout always uses online payment.
+  const [paymentMethod, setPaymentMethod] = useState("prepaid");
   const [promoInput, setPromoInput] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [summary, setSummary] = useState(null);
@@ -302,7 +302,7 @@ export default function CheckoutPage() {
           },
           modal: {
             ondismiss: () => {
-              setFormError("Payment was cancelled. You can try again or choose Cash on Delivery.");
+              setFormError("Payment was cancelled. You can try again.");
               resolve();
             },
           },
@@ -455,6 +455,7 @@ export default function CheckoutPage() {
                 <strong>Pay online</strong>
                 <small>UPI, cards &amp; netbanking</small>
               </button>
+              {/* Cash on delivery is turned off for now. Uncomment to bring it back.
               <button
                 type="button"
                 className={`pb-pay-option ${paymentMethod === "cod" ? "is-active" : ""}`}
@@ -463,6 +464,7 @@ export default function CheckoutPage() {
                 <strong>Cash on delivery</strong>
                 <small>Pay when it arrives</small>
               </button>
+              */}
             </div>
           </section>
         </div>

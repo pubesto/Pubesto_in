@@ -216,6 +216,7 @@ export default function CartDrawer() {
                           <strong>Pay online</strong>
                           <small>UPI, cards &amp; netbanking</small>
                         </button>
+                        {/* Cash on delivery is turned off for now. Uncomment to bring it back.
                         <button
                           type="button"
                           className={`pb-pay-option ${paymentMethod === "cod" ? "is-active" : ""}`}
@@ -224,6 +225,7 @@ export default function CartDrawer() {
                           <strong>Cash on delivery</strong>
                           <small>Standard price</small>
                         </button>
+                        */}
                       </div>
                     </div>
 

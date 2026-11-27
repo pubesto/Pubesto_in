@@ -614,7 +614,6 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         subsections: [],
         blocks: [
           list(
-            "A Cash on Delivery (COD) charge of ₹100 is applicable on COD orders below ₹3,000.",
             "Products are shipped from the warehouse within 4 working days from order confirmation.",
             "Orders are typically delivered within 10 working days from the date of shipment.",
             "Once shipped, the order tracking number will be shared via email or SMS.",
@@ -639,11 +638,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
             title: "Charges & Refunds",
             blocks: [
               list(
-                "Shipping charges and COD charges are non-refundable.",
-                "A non-refundable COD charge of ₹100 applies to all COD orders below ₹3,000.",
+                "Shipping charges are non-refundable.",
                 "Once the product is picked up, refunds are initiated within 3 working days:",
-                "Prepaid orders: Refund to original payment method",
-                "COD orders: Refund processed via Razorpay link sent to the registered email ID",
+                "Refund to the original payment method",
+                "Cash on delivery orders placed earlier: Refund processed via Razorpay link sent to the registered email ID",
               ),
             ],
           },

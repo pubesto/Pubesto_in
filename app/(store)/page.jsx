@@ -152,7 +152,7 @@ function UspStrip() {
     { icon: Truck, title: "Free shipping", text: "On orders above ₹500" },
     { icon: Zap, title: "Extra 10% off", text: "On every prepaid order" },
     { icon: RotateCcw, title: "Easy returns", text: "7-day hassle-free" },
-    { icon: ShieldCheck, title: "Secure payments", text: "UPI, cards & COD" },
+    { icon: ShieldCheck, title: "Secure payments", text: "UPI, cards & netbanking" },
   ];
   return (
     <div className="pb-usps">
